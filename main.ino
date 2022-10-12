@@ -28,6 +28,7 @@ unsigned int tubeLength;      // mm
 unsigned int tubeOffset;      // mm
 unsigned int motorOneSpeed;   // mm/s
 unsigned int motorTwoSpeed;   // deg/s
+unsigned int stepDown;        // deg
 
 const int mmPerRev = 10;      // mm
 const int fullStepsPerRev = 200;
@@ -85,6 +86,9 @@ void setup() {
   // set step delays
   motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
   motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
+
+  // set stepDown 
+  stepDown = 3; // deg
 
 
   // testing
@@ -202,14 +206,41 @@ void loop() {
 
     if (mode) {    
 
-      // calc how many steps the linear motor has to move each time
-      int  steps = distPerStep * tubeLength;
+//      // calc how many steps the linear motor has to move each time
+//      int  linearSteps = distPerStep * tubeLength;
       
-  
       // calc how many steps the rotary motor has to move each time
+      int angSteps = degPerStep * stepDown;
   
       // calc how many total sequences to scan entire tube
+      int num = (int)(360.0 / angSteps);
 
+      // go through scanning sequence _num_ times, until tube has done a full revolution
+      for (int i = 0; i < num; i++) {
+        if (motorOne.dirState) {
+          while (motorOne.pos < (tubeOffset + tubeLength)) {
+            Motor *ptr = &motorOne;
+            motorStep( ptr );
+          }
+        } else {
+          while (motorOne.pos > tubeOffset) {
+            Motor *ptr = &motorOne;
+            motorStep( ptr );
+          }
+        }
+        
+        // change direction of linear motor each time
+        motorOne.dirState = (motorOne.dirState) ? LOW : HIGH; 
+
+        // rotate the tube each time
+        for (int j = 0; j < angSteps; j++) {
+          Motor *ptr = &motorTwo;
+          motorStep( ptr );
+        }
+      }
+
+    } else {
+      
     }
     
   } 
@@ -280,5 +311,3 @@ void writeIntIntoEEPROM(int address, unsigned int number) {
 unsigned int readIntFromEEPROM(int address) {
   return (EEPROM.read(address) << 8) + EEPROM.read(address + 1);
 }
-
-
