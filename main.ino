@@ -1,9 +1,9 @@
 #include <EEPROM.h>
 
-#define DIRPIN1   22 // GPIO 22
-#define STEPPIN1  23 // GPIO 23
-#define DIRPIN2   24 // GPIO 24
-#define STEPPIN2  25 // GPIO 25
+#define STEPPIN1  22 // GPIO 23
+#define DIRPIN1   23 // GPIO 22
+#define STEPPIN2  24 // GPIO 25
+#define DIRPIN2   25 // GPIO 24
 #define PROXPIN1  26 // GPIO 26
 #define PROXPIN2  27 // GPIO 27
 
