@@ -1,14 +1,16 @@
 #include <EEPROM.h>
 
-#define DIRPIN1   0b00000001 // GPIO 8
-#define STEPPIN1  0b00000010 // GPIO 9
-#define DIRPIN2   0b00000100 // GPIO 10
-#define STEPPIN2  0b00001000 // GPIO 11
-#define PROXPIN1  0b00010000 // GPIO 12
-#define PROXPIN2  0b00100000 // GPIO 13
+#define DIRPIN1   22 // GPIO 22
+#define STEPPIN1  23 // GPIO 23
+#define DIRPIN2   24 // GPIO 24
+#define STEPPIN2  25 // GPIO 25
+#define PROXPIN1  26 // GPIO 26
+#define PROXPIN2  27 // GPIO 27
 
+const byte numChars = 15;
+byte message[numChars];
+boolean newData = false;
 
-unsigned int message[7];
 int index = 0;
 bool delimiterFlag = false;
 
@@ -30,7 +32,7 @@ unsigned int motorOneSpeed;   // mm/s
 unsigned int motorTwoSpeed;   // deg/s
 unsigned int stepDown;        // deg
 
-const int mmPerRev = 10;      // mm
+const float mmPerRev = 10.0;      // mm
 const int fullStepsPerRev = 200;
 unsigned int microsteps;
 int stepsPerRev;
@@ -38,15 +40,16 @@ float distPerStep;
 float degPerStep;
 
 unsigned int mode;
-int state = 0;
+int state = 1;
 int proxDebounce = 0;
 
-int motorOneSpeedAddr = 10;
-int motorTwoSpeedAddr = 12;
+
 int tubeLengthAddr = 14;
 int tubeOffsetAddr = 16;
 int microstepsAddr = 18;
 int modeAddr = 20;
+int motorOneSpeedAddr = 22;
+int motorTwoSpeedAddr = 24;
 
 
 
@@ -58,8 +61,13 @@ void setup() {
   Serial.begin(115200);
 
   // sets Pins 8,9,10,11 to Outputs, Pins 12,13 to Inputs
-  DDRB = DDRB | 0b00001111;
-  DDRB = DDRB & 0b11001111;
+  pinMode(DIRPIN1, OUTPUT);
+  pinMode(DIRPIN2, OUTPUT);
+  pinMode(STEPPIN1, OUTPUT);
+  pinMode(STEPPIN2, OUTPUT);
+  pinMode(PROXPIN1, INPUT);
+  pinMode(PROXPIN2, INPUT);
+  
 
   // get motor speeds
   motorOneSpeed = readIntFromEEPROM(motorOneSpeedAddr);
@@ -83,16 +91,17 @@ void setup() {
   distPerStep = mmPerRev / stepsPerRev;
   degPerStep = 360.0 / stepsPerRev;
 
+
+
   // set step delays
   motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
   motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
 
+  Serial.println(motorOne.stepDelay);
+
+
   // set stepDown 
   stepDown = 3; // deg
-
-
-  // testing
-  motorOne.stepDelay = 100000;
 
 
   Serial.print("Tube Length: ");
@@ -114,6 +123,7 @@ void setup() {
   while (!motorHoming( ptr )); 
 
   Serial.println( "Homed!" );
+  delay(5000);
 
   
 }
@@ -122,70 +132,14 @@ void loop() {
 
   if (state == 0) {
 
-    if (Serial.available()) {
-      while (Serial.available()) {
-        char x = Serial.read();
-        unsigned int n = x - '0';
-        if (index < sizeof(message)) {
-          message[index] = n;
-          index++;
-        }
-      }
-      for (int i = 0; i < sizeof(message); i++) {
-        Serial.print(message[i]);
-      }
-      Serial.println();
-      delimiterFlag = true;
-      index = 0;
-    }
-    
-    
-    if (delimiterFlag) {
-      delimiterFlag = false;
+    recvWithStartEndMarkers();    
 
-      int tempState = message[0];
-      unsigned int tempTubeLength = message[1];
-      unsigned int tempTubeOffset = message[2];
-      unsigned int tempMotorOneSpeed = message[3];
-      unsigned int tempMotorTwoSpeed = message[4];
-      int tempMode = message[5];
-      int tempMicrosteps = message[6];
-      
+//    for (int i = 0; i < numChars; i++) {
+//      Serial.print(message[i]);
+//      Serial.print(" ");
+//    }
+//    Serial.println();
 
-//      if (state != tempState) {
-//        state = tempState;
-//      }
-      if (tubeLength != tempTubeLength) {
-        tubeLength = tempTubeLength;
-        writeIntIntoEEPROM(tubeLengthAddr, tubeLength);
-      }
-      if (tubeOffset != tempTubeOffset) {
-        tubeOffset = tempTubeOffset;
-        writeIntIntoEEPROM(tubeOffsetAddr, tubeOffset);
-      }
-      if (mode != tempMode) {
-        mode = tempMode;
-        writeIntIntoEEPROM(modeAddr, mode);
-      }
-      if (microsteps != tempMicrosteps) {
-        microsteps = tempMicrosteps;
-        writeIntIntoEEPROM(microstepsAddr, microsteps);
-        stepsPerRev = fullStepsPerRev * microsteps;  
-        degPerStep = 360.0 / stepsPerRev;
-        distPerStep = mmPerRev / stepsPerRev;
-      }
-      if (motorOneSpeed!= tempMotorOneSpeed) {
-        motorOneSpeed = tempMotorOneSpeed;
-        writeIntIntoEEPROM(motorOneSpeed, motorOneSpeedAddr);
-        motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
-      }
-      if (motorTwoSpeed!= tempMotorTwoSpeed) {
-        motorTwoSpeed = tempMotorTwoSpeed;
-        writeIntIntoEEPROM(motorTwoSpeed, motorTwoSpeedAddr);
-        motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
-      }
-          
-    }
 
   } else if (state == 1) {
 
@@ -254,8 +208,8 @@ void loop() {
 
 bool motorHoming(Motor *m) {
   bool homed = false;
-  int proxState = fastDigitalRead(PINB, PROXPIN1);
-    
+  int proxState = digitalRead(PROXPIN1);
+
   if (proxState) {
     proxDebounce += 1;
 
@@ -283,23 +237,8 @@ void motorStep(Motor *m) {
     // by 1, incrementing stepCounter
     m->stepCounter += (1 * m->stepState) * (2 * m->dirState - 1);
     
-    fastDigitalWrite(m->dirPin, m->dirState);
-    fastDigitalWrite(m->stepPin, m->stepState);
-  }
-}
-
-
-int fastDigitalRead(int registr, int pin) {
-  int x = registr;
-  x = x & pin;
-  return x;
-}
-
-void fastDigitalWrite(int pin, int state) {
-  if (state) {
-    PORTB = PORTB | pin;
-  } else {
-    PORTB = PORTB | ~pin;
+    digitalWrite(m->dirPin, m->dirState);
+    digitalWrite(m->stepPin, m->stepState);
   }
 }
 
@@ -311,3 +250,92 @@ void writeIntIntoEEPROM(int address, unsigned int number) {
 unsigned int readIntFromEEPROM(int address) {
   return (EEPROM.read(address) << 8) + EEPROM.read(address + 1);
 }
+
+
+
+
+
+
+void recvWithStartEndMarkers() {
+    static boolean recvInProgress = false;
+    static byte ndx = 0;
+    char startMarker = '<';
+    char endMarker = '>';
+    byte rc;
+ 
+    while (Serial.available() > 0 && newData == false) {
+        rc = Serial.read();
+
+        if (recvInProgress == true) {
+            if (rc != endMarker) {
+                message[ndx] = rc;
+                ndx++;
+                if (ndx >= numChars) {
+                    ndx = numChars - 1;
+                }
+            }
+            else {
+                message[ndx] = '\0'; // terminate the string
+                recvInProgress = false;
+                ndx = 0;
+                newData = true;
+            }
+        }
+
+        else if (rc == startMarker) {
+            recvInProgress = true;
+        }
+    }
+
+
+
+    if (newData) {
+
+      int tempState = (message[0]<<8) + (message[1]);
+      unsigned int tempTubeLength = (message[2]<<8) + (message[3]);
+      unsigned int tempTubeOffset = (message[4]<<8) + (message[5]);
+      unsigned int tempMotorOneSpeed = (message[6]<<8) + (message[7]);
+      unsigned int tempMotorTwoSpeed = (message[8]<<8) + (message[9]);
+      int tempMode = (message[10]<<8) + (message[11]);
+      unsigned int tempMicrosteps = (message[12]<<8) + (message[13]);
+      
+
+      if (state != tempState) {
+        state = tempState;
+      }
+      if (tubeLength != tempTubeLength) {
+        tubeLength = tempTubeLength;
+        writeIntIntoEEPROM(tubeLengthAddr, tubeLength);
+      }
+      if (tubeOffset != tempTubeOffset) {
+        tubeOffset = tempTubeOffset;
+        writeIntIntoEEPROM(tubeOffsetAddr, tubeOffset);
+      }
+      if (mode != tempMode) {
+        mode = tempMode;
+        writeIntIntoEEPROM(modeAddr, mode);
+      }
+      if (microsteps != tempMicrosteps) {
+        microsteps = tempMicrosteps;
+        writeIntIntoEEPROM(microstepsAddr, microsteps);
+        stepsPerRev = fullStepsPerRev * microsteps;  
+        degPerStep = 360.0 / stepsPerRev;
+        distPerStep = mmPerRev / stepsPerRev;
+      }
+      if (motorOneSpeed != tempMotorOneSpeed) {
+        motorOneSpeed = tempMotorOneSpeed;
+        writeIntIntoEEPROM(motorOneSpeedAddr, motorOneSpeed);
+        motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
+      }
+      if (motorTwoSpeed != tempMotorTwoSpeed) {
+        motorTwoSpeed = tempMotorTwoSpeed;
+        writeIntIntoEEPROM(motorTwoSpeedAddr, motorTwoSpeed);
+        motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
+      }
+
+      newData = false;
+          
+    }
+    
+}
+
