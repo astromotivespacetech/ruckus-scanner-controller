@@ -30,7 +30,8 @@ unsigned int tubeLength;      // mm
 unsigned int tubeOffset;      // mm
 unsigned int motorOneSpeed;   // mm/s
 unsigned int motorTwoSpeed;   // deg/s
-unsigned int stepDown;        // deg
+unsigned int stepOver;        // mm
+float stepDown;               // deg
 
 const float mmPerRev = 10.0;      // mm
 const int fullStepsPerRev = 200;
@@ -38,23 +39,22 @@ unsigned int microsteps;
 int stepsPerRev;
 float distPerStep;
 float degPerStep;
-
 unsigned int mode;
 int state = 1;
-int proxDebounce = 0;
 
 
-int tubeLengthAddr = 14;
-int tubeOffsetAddr = 16;
-int microstepsAddr = 18;
-int modeAddr = 20;
-int motorOneSpeedAddr = 22;
-int motorTwoSpeedAddr = 24;
-
-
+int tubeLengthAddr = 0;
+int tubeOffsetAddr = 2;
+int modeAddr = 4;
+int motorOneSpeedAddr = 6;
+int motorTwoSpeedAddr = 8;
+int stepDownAddr = 10;
+int stepOverAddr = 12;
 
 Motor motorOne { DIRPIN1, STEPPIN1, LOW, LOW, 0, 0, 0, 0.0 };
 Motor motorTwo { DIRPIN2, STEPPIN2, LOW, LOW, 0, 0, 0, 0.0 };
+
+int proxDebounce = 0;
 
 
 void setup() {
@@ -78,6 +78,10 @@ void setup() {
   tubeLength = readIntFromEEPROM(tubeLengthAddr);
   tubeOffset = readIntFromEEPROM(tubeOffsetAddr);
 
+  // get stepover and stepdown 
+  stepDown = (float)(readIntFromEEPROM(stepDownAddr)) * 0.1;
+  stepOver = readIntFromEEPROM(stepOverAddr);
+
   // get mode
   mode = readIntFromEEPROM(modeAddr);
 
@@ -97,11 +101,7 @@ void setup() {
   motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
   motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
 
-  Serial.println(motorOne.stepDelay);
 
-
-  // set stepDown 
-  stepDown = 3; // deg
 
 
   Serial.print("Tube Length: ");
@@ -291,13 +291,13 @@ void recvWithStartEndMarkers() {
 
     if (newData) {
 
-      int tempState = (message[0]<<8) + (message[1]);
-      unsigned int tempTubeLength = (message[2]<<8) + (message[3]);
-      unsigned int tempTubeOffset = (message[4]<<8) + (message[5]);
-      unsigned int tempMotorOneSpeed = (message[6]<<8) + (message[7]);
-      unsigned int tempMotorTwoSpeed = (message[8]<<8) + (message[9]);
-      int tempMode = (message[10]<<8) + (message[11]);
-      unsigned int tempMicrosteps = (message[12]<<8) + (message[13]);
+      unsigned int tempTubeLength = (message[0]<<8) + (message[1]);
+      unsigned int tempTubeOffset = (message[2]<<8) + (message[3]);
+      unsigned int tempMotorOneSpeed = (message[4]<<8) + (message[5]);
+      unsigned int tempMotorTwoSpeed = (message[6]<<8) + (message[7]);
+      unsigned int tempMode = (message[8]<<8) + (message[9]);
+      unsigned int tempStepOver = (message[10]<<8) + (message[11]);
+      unsigned int tempStepDown = (message[12]<<8) + (message[13]);
       
 
       if (state != tempState) {
@@ -315,13 +315,6 @@ void recvWithStartEndMarkers() {
         mode = tempMode;
         writeIntIntoEEPROM(modeAddr, mode);
       }
-      if (microsteps != tempMicrosteps) {
-        microsteps = tempMicrosteps;
-        writeIntIntoEEPROM(microstepsAddr, microsteps);
-        stepsPerRev = fullStepsPerRev * microsteps;  
-        degPerStep = 360.0 / stepsPerRev;
-        distPerStep = mmPerRev / stepsPerRev;
-      }
       if (motorOneSpeed != tempMotorOneSpeed) {
         motorOneSpeed = tempMotorOneSpeed;
         writeIntIntoEEPROM(motorOneSpeedAddr, motorOneSpeed);
@@ -332,10 +325,17 @@ void recvWithStartEndMarkers() {
         writeIntIntoEEPROM(motorTwoSpeedAddr, motorTwoSpeed);
         motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
       }
+      if (stepOver != tempStepOver) {
+        stepOver = tempStepOver;
+        writeIntIntoEEPROM(stepOverAddr, stepOver);
+      }
+      if (stepDown != (float)(tempStepDown)*0.1) {
+        stepDown = (float)(tempStepDown)*0.1;
+        writeIntIntoEEPROM(stepOverAddr, stepDown);
+      }
 
       newData = false;
           
     }
     
 }
-
