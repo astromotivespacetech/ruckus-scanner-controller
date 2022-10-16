@@ -40,7 +40,7 @@ int stepsPerRev;
 float distPerStep;
 float degPerStep;
 unsigned int mode;
-int state = 1;
+int state = 0;
 
 
 int tubeLengthAddr = 0;
@@ -296,10 +296,6 @@ void recvWithStartEndMarkers() {
       unsigned int tempStepOver = (message[10]<<8) + (message[11]);
       unsigned int tempStepDown = (message[12]<<8) + (message[13]);
       
-
-      if (state != tempState) {
-        state = tempState;
-      }
       if (tubeLength != tempTubeLength) {
         tubeLength = tempTubeLength;
         writeIntIntoEEPROM(tubeLengthAddr, tubeLength);
