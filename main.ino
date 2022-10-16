@@ -35,7 +35,7 @@ float stepDown;               // deg
 
 const float mmPerRev = 10.0;      // mm
 const int fullStepsPerRev = 200;
-unsigned int microsteps;
+unsigned int microsteps = 2;
 int stepsPerRev;
 float distPerStep;
 float degPerStep;
@@ -84,9 +84,6 @@ void setup() {
 
   // get mode
   mode = readIntFromEEPROM(modeAddr);
-
-  // get microstepping 
-  microsteps = readIntFromEEPROM(microstepsAddr);
 
   // calc steps per revolution
   stepsPerRev = fullStepsPerRev * microsteps;  
@@ -339,3 +336,4 @@ void recvWithStartEndMarkers() {
     }
     
 }
+
