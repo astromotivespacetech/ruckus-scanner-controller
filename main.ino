@@ -114,20 +114,23 @@ void setup() {
   Serial.print("Microsteps: ");
   Serial.println(microsteps); 
   
-  // run motor homing function until it returns true i.e. until 
-  // it hits the proximity sensor, so we start with a known position
-  Motor *ptr = &motorOne;
-  while (!motorHoming( ptr )); 
-
-  Serial.println( "Homed!" );
-  delay(5000);
 
   
 }
 
 void loop() {
 
-  if (state == 0) {
+  if (state == -1) {
+    
+    // run motor homing function until it returns true i.e. until 
+    // it hits the proximity sensor, so we start with a known position
+    motorOne.dirState = HIGH;
+    Motor *ptr = &motorOne;
+    while (!motorHoming( ptr )); 
+    
+    state = 0;
+
+  } else if (state == 0) {
 
     recvWithStartEndMarkers();    
 
@@ -332,4 +335,3 @@ void recvWithStartEndMarkers() {
     }
     
 }
-
