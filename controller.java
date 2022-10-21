@@ -14,7 +14,7 @@ int H = 1120;
 PFont font1;
 
 ControlP5 cp5;
-Button b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, mode1, mode2;           
+Button b1, b2, b3, b5, b6, b7, b8, b9, b10, b11, b12, mode1, mode2;           
 Knob k1, k2;
 Slider s1, s2, s3, s4;
 
@@ -27,16 +27,27 @@ int mode = 1;
 int stepOver = 5;
 int stepDown = 100;
 
+int sectionOneLeft = 100;
+int sectionOneTop = 200;
+int sectionTwoLeft = 700;
+int sectionThreeLeft = 1350;
+int buttonWidth = 200;
+int buttonHeight = 70;
+int buttonSpacing = 100;
 int margin = 100;
-int scanLengthTop = 380;
+int scanLengthTop = sectionOneTop;
 int tubeOffsetTop = scanLengthTop + margin;
 int stepoverTop = scanLengthTop + margin*2;
 int stepdownTop = scanLengthTop + margin*3;
+int sliderLength = 400;
+
+
+
 
 
 void setup() {
-  //size(1792, 1120);  
-  size(1100, 1000);  
+  size(1792, 1120);  
+  //size(1100, 1000);  
   font1 = createFont("Monospaced", 16);
   
   // List all the available serial ports:
@@ -56,61 +67,69 @@ void setup() {
   
   b1 = cp5.addButton("save")
     .setCaptionLabel("Save")
-    .setPosition(100, 800)
+    .setPosition(sectionOneLeft, sectionOneTop + buttonSpacing*2)
     .setSize(200, 70)
     .setFont(font1);
     
   b2 = cp5.addButton("run")
-    .setCaptionLabel("Run")
-    .setPosition(310, 800)
+    .setCaptionLabel("Start")
+    .setPosition(sectionOneLeft, sectionOneTop + buttonSpacing)
     .setSize(200, 70)
     .setFont(font1);
+    
+  b3 = cp5.addButton("home")
+    .setCaptionLabel("Home")
+    .setPosition(sectionOneLeft+buttonWidth+10, sectionOneTop + buttonSpacing)
+    .setSize(200, 70)
+    .setFont(font1);
+    
+  
 
-  b3 = cp5.addButton("plus")
+  b5 = cp5.addButton("plus")
     .setCaptionLabel("+")
-    .setPosition(545, scanLengthTop)
+    .setPosition(sectionTwoLeft+sliderLength+35, scanLengthTop)
     .setSize(25, 25)
     .setFont(font1);
     
-  b4 = cp5.addButton("minus")
+  b6 = cp5.addButton("minus")
     .setCaptionLabel("-")
-    .setPosition(100, scanLengthTop)
+    .setPosition(sectionTwoLeft, scanLengthTop)
     .setSize(25, 25)
     .setFont(font1);
     
-  b5 = cp5.addButton("plusTubeOffset")
+  b7 = cp5.addButton("plusTubeOffset")
     .setCaptionLabel("+")
-    .setPosition(545, tubeOffsetTop)
+    .setPosition(sectionTwoLeft+sliderLength+35, tubeOffsetTop)
     .setSize(25, 25)
     .setFont(font1);
     
-  b6 = cp5.addButton("minusTubeOffset")
+  b8 = cp5.addButton("minusTubeOffset")
     .setCaptionLabel("-")
-    .setPosition(100, tubeOffsetTop)
+    .setPosition(sectionTwoLeft, tubeOffsetTop)
     .setSize(25, 25)
     .setFont(font1);
         
-  b7 = cp5.addButton("plusStepover")
+  b9 = cp5.addButton("plusStepover")
     .setCaptionLabel("+")
-    .setPosition(545, stepoverTop)
+    .setPosition(sectionTwoLeft+sliderLength+35, stepoverTop)
     .setSize(25, 25)
     .setFont(font1);
     
-  b8 = cp5.addButton("minusStepover")
+  b10 = cp5.addButton("minusStepover")
     .setCaptionLabel("-")
-    .setPosition(100, stepoverTop)
+    .setPosition(sectionTwoLeft, stepoverTop)
     .setSize(25, 25)
     .setFont(font1);
   
-  b9 = cp5.addButton("plusStepdown")
+  b11 = cp5.addButton("plusStepdown")
     .setCaptionLabel("+")
-    .setPosition(545, stepdownTop)
+    .setPosition(sectionTwoLeft+sliderLength+35, stepdownTop)
     .setSize(25, 25)
     .setFont(font1);
   
-  b10 = cp5.addButton("minusStepdown")
+  b12 = cp5.addButton("minusStepdown")
     .setCaptionLabel("-")
-    .setPosition(100, stepdownTop)
+    .setPosition(sectionTwoLeft, stepdownTop)
     .setSize(25, 25)
     .setFont(font1);
     
@@ -118,7 +137,7 @@ void setup() {
    .setCaptionLabel("Linear Speed (mm/s)")
    .setRange(10,50)
    .setValue(30)
-   .setPosition(700,200)
+   .setPosition(sectionThreeLeft,200)
    .setRadius(100)
    .setNumberOfTickMarks(40)
    .setTickMarkLength(4)
@@ -130,7 +149,7 @@ void setup() {
    .setCaptionLabel("Angular Speed (deg/s)")
    .setRange(90,360)
    .setValue(180)
-   .setPosition(700,550)
+   .setPosition(sectionThreeLeft,550)
    .setRadius(100)
    .setNumberOfTickMarks(6)
    .setTickMarkLength(4)
@@ -140,8 +159,8 @@ void setup() {
    
   s1 = cp5.addSlider("scanlength")
      .setCaptionLabel("")
-     .setPosition(135, scanLengthTop)
-     .setSize(400,25)
+     .setPosition(sectionTwoLeft + 30, scanLengthTop)
+     .setSize(sliderLength,25)
      .setRange(100,1000)
      .setValue(500)
      .setNumberOfTickMarks(901)
@@ -149,8 +168,8 @@ void setup() {
      
   s2 = cp5.addSlider("tubeoffset")
      .setCaptionLabel("")
-     .setPosition(135, tubeOffsetTop)
-     .setSize(400,25)
+     .setPosition(sectionTwoLeft + 30, tubeOffsetTop)
+     .setSize(sliderLength,25)
      .setRange(100,1000)
      .setValue(500)
      .setNumberOfTickMarks(901)
@@ -158,8 +177,8 @@ void setup() {
 
   s3 = cp5.addSlider("stepover")
      .setCaptionLabel("")
-     .setPosition(135, stepoverTop)
-     .setSize(400,25)
+     .setPosition(sectionTwoLeft + 30, stepoverTop)
+     .setSize(sliderLength,25)
      .setRange(1,10)
      .setValue(stepOver)
      .setNumberOfTickMarks(10)
@@ -167,8 +186,8 @@ void setup() {
      
   s4 = cp5.addSlider("stepdown")
     .setCaptionLabel("")
-    .setPosition(135, stepdownTop)
-    .setSize(400,25)
+    .setPosition(sectionTwoLeft + 30, stepdownTop)
+    .setSize(sliderLength,25)
     .setRange(0.1,2.0)
     .setValue(stepDown*0.01)
     .setNumberOfTickMarks(20)
@@ -176,15 +195,15 @@ void setup() {
     
   mode1 = cp5.addButton("mode1")
     .setCaptionLabel("Mode 1")
-    .setPosition(100, 200)
-    .setSize(200, 70)
+    .setPosition(sectionOneLeft, sectionOneTop)
+    .setSize(buttonWidth, buttonHeight)
     .setFont(font1)
     .setColorBackground(#2266cc);
   
   mode2 = cp5.addButton("mode2")
     .setCaptionLabel("Mode 2")
-    .setPosition(310, 200)
-    .setSize(200, 70)
+    .setPosition(sectionOneLeft + buttonWidth + 10, sectionOneTop)
+    .setSize(buttonWidth, buttonHeight)
     .setFont(font1)
     .setColorBackground(#444444);
   
@@ -192,6 +211,8 @@ void setup() {
   
   b1.getCaptionLabel().toUpperCase(false);
   b2.getCaptionLabel().toUpperCase(false);
+  b3.getCaptionLabel().toUpperCase(false);
+  //b4.getCaptionLabel().toUpperCase(false);
   k1.getCaptionLabel().toUpperCase(false);
   k2.getCaptionLabel().toUpperCase(false);
   mode1.getCaptionLabel().toUpperCase(false);
@@ -204,13 +225,13 @@ void draw() {
   background(20, 20, 25);
   
   textSize(24);
-  text("Ruckus Composites", 100, 100);
+  text("Ruckus Composites", sectionOneLeft, 100);
   
   textSize(16);
-  text("Scan Length (mm)", 100, scanLengthTop-20);
-  text("Tube Offset (mm)", 100, tubeOffsetTop-20);
-  text("Stepover (mm)", 100, stepoverTop-20);
-  text("Stepdown (deg)", 100, stepdownTop-20);
+  text("Scan Length (mm)", sectionTwoLeft, scanLengthTop-20);
+  text("Tube Offset (mm)", sectionTwoLeft, tubeOffsetTop-20);
+  text("Stepover (mm)", sectionTwoLeft, stepoverTop-20);
+  text("Stepdown (deg)", sectionTwoLeft, stepdownTop-20);
 }
 
 
@@ -220,8 +241,17 @@ void save() {
   sendCommand(); 
 }
 
-void run() {
-  state = 1;
+void run() {  
+  int s = (b2.getCaptionLabel().getText() == "Start") ? 1 : 0;
+  String x = (b2.getCaptionLabel().getText() == "Start") ? "Stop" : "Start";
+  b2.setCaptionLabel(x);
+  state = s;
+  sendCommand();
+}
+
+
+void home() {
+  state = 2;
   sendCommand();
   state = 0;
 }
