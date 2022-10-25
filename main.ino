@@ -188,12 +188,11 @@ void loop() {
     
     // run motor homing function until it returns true i.e. until 
     // it hits the proximity sensor, so we start with a known position
-    motorOne.dirState = HIGH;
+    motorOne.dirState = LOW;
     Motor *ptr = &motorOne;
     while (!motorHoming( ptr )); 
-    
     state = 0; 
-    motorOne.dirState = LOW;
+    motorOne.dirState = HIGH;
 
   }
 
