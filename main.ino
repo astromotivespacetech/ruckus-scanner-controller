@@ -144,7 +144,7 @@ void loop() {
 //      int  linearSteps = distPerStep * scanLength;
       
       // calc how many steps the rotary motor has to move each time
-      int angSteps = degPerStep * stepDown;
+      int angSteps = (int)(stepDown / degPerStep);
   
       // calc how many total sequences to scan entire tube
       int num = (int)(360.0 / angSteps);
