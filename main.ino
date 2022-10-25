@@ -101,8 +101,8 @@ void setup() {
 
 
 
-  Serial.print("Tube Length: ");
-  Serial.println(tubeLength);
+  Serial.print("Scan Length: ");
+  Serial.println(scanLength);
   Serial.print("Tube Offset: ");
   Serial.println(tubeOffset);
   Serial.print("Motor 1 Speed: ");
@@ -151,7 +151,7 @@ void loop() {
     if (mode) {    
 
 //      // calc how many steps the linear motor has to move each time
-//      int  linearSteps = distPerStep * tubeLength;
+//      int  linearSteps = distPerStep * scanLength;
       
       // calc how many steps the rotary motor has to move each time
       int angSteps = degPerStep * stepDown;
