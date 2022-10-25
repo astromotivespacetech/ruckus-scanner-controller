@@ -255,6 +255,7 @@ void recvWithStartEndMarkers() {
     static byte ndx = 0;
     char startMarker = '<';
     char endMarker = '>';
+    char requestData = '?';
     byte rc;
  
     while (Serial.available() > 0 && newData == false) {
@@ -267,17 +268,29 @@ void recvWithStartEndMarkers() {
                 if (ndx >= numChars) {
                     ndx = numChars - 1;
                 }
-            }
-            else {
+            } else {
                 message[ndx] = '\0'; // terminate the string
                 recvInProgress = false;
                 ndx = 0;
                 newData = true;
             }
-        }
-
-        else if (rc == startMarker) {
+        } else if (rc == startMarker) {
             recvInProgress = true;
+        } else if (rc == requestData) {
+          Serial.print(scanLength);
+          Serial.print(",");
+          Serial.print(tubeOffset);
+          Serial.print(",");
+          Serial.print(motorOneSpeed); 
+          Serial.print(",");
+          Serial.print(motorTwoSpeed); 
+          Serial.print(",");
+          Serial.print(mode); 
+          Serial.print(",");
+          Serial.print(stepOver);
+          Serial.print(",");
+          Serial.print(readIntFromEEPROM(stepDownAddr));
+          Serial.println();
         }
     }
 
