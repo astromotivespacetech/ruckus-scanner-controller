@@ -101,18 +101,18 @@ void setup() {
   motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
 
 
-  Serial.print("Scan Length: ");
-  Serial.println(scanLength);
-  Serial.print("Tube Offset: ");
-  Serial.println(tubeOffset);
-  Serial.print("Motor 1 Speed: ");
-  Serial.println(motorOneSpeed); 
-  Serial.print("Motor 2 Speed: ");
-  Serial.println(motorTwoSpeed); 
-  Serial.print("Mode: ");
-  Serial.println(mode); 
-  Serial.print("Microsteps: ");
-  Serial.println(microsteps); 
+//   Serial.print("Scan Length: ");
+//   Serial.println(scanLength);
+//   Serial.print("Tube Offset: ");
+//   Serial.println(tubeOffset);
+//   Serial.print("Motor 1 Speed: ");
+//   Serial.println(motorOneSpeed); 
+//   Serial.print("Motor 2 Speed: ");
+//   Serial.println(motorTwoSpeed); 
+//   Serial.print("Mode: ");
+//   Serial.println(mode); 
+//   Serial.print("Microsteps: ");
+//   Serial.println(microsteps); 
   
 }
 
