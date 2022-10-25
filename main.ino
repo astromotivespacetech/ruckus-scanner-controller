@@ -80,7 +80,7 @@ void setup() {
   tubeOffset = readIntFromEEPROM(tubeOffsetAddr);
 
   // get stepover and stepdown 
-  stepDown = (float)(readIntFromEEPROM(stepDownAddr)) * 0.1;
+  stepDown = (float)(readIntFromEEPROM(stepDownAddr)) * 0.01;
   stepOver = readIntFromEEPROM(stepOverAddr);
 
   // get mode
@@ -138,7 +138,7 @@ void loop() {
     // small amount. if mode 2, then the rotar motor will do a full
     // rotation, and then the linear motor will move a small amount.
 
-    if (mode) {    
+    if (mode == 1) {    
 
 //      // calc how many steps the linear motor has to move each time
 //      int  linearSteps = distPerStep * scanLength;
@@ -336,8 +336,8 @@ void recvWithStartEndMarkers() {
         stepOver = tempStepOver;
         writeIntIntoEEPROM(stepOverAddr, stepOver);
       }
-      if (stepDown != (float)(tempStepDown)*0.1) {
-        stepDown = (float)(tempStepDown)*0.1;
+      if (stepDown != (float)(tempStepDown)*0.01) {
+        stepDown = (float)(tempStepDown)*0.01;
         writeIntIntoEEPROM(stepOverAddr, stepDown);
       }
 
