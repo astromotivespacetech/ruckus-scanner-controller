@@ -236,6 +236,7 @@ void draw() {
   if (port_exists) {
     if ( port.available() > 0 ) {
       String val = port.readStringUntil('\n'); 
+            
       if (val != null) {
         String[] vals = val.split(",");
         scanLength = Integer.parseInt(vals[0]);
@@ -384,5 +385,3 @@ void writeInt(int x) {
   port.write(x >> 8);
   port.write(x & 255);
 }
-  
-  
