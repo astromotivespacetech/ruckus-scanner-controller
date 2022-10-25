@@ -170,9 +170,9 @@ void setup() {
      .setCaptionLabel("")
      .setPosition(sectionTwoLeft + 30, tubeOffsetTop)
      .setSize(sliderLength,25)
-     .setRange(100,1000)
+     .setRange(0,1000)
      .setValue(500)
-     .setNumberOfTickMarks(901)
+     .setNumberOfTickMarks(1001)
      .setFont(font1);    
 
   s3 = cp5.addSlider("stepover")
