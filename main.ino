@@ -36,7 +36,7 @@ float stepDown;               // deg
 
 const float mmPerRev = 10.0;      // mm
 const int fullStepsPerRev = 200;
-unsigned int microsteps = 2;
+unsigned int microsteps = 4;
 int stepsPerRev;
 float distPerStep;
 float degPerStep;
