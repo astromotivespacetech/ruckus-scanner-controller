@@ -196,7 +196,8 @@ void loop() {
     while (!motorHoming( ptr )); 
     
     state = 0; 
-  
+    motorOne.dirState = LOW;
+
   }
 
 
