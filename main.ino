@@ -206,9 +206,12 @@ void loop() {
 
 bool motorHoming(Motor *m) {
   bool homed = false;
-  int proxState = digitalRead(PROXPIN1);
 
-  if (proxState) {
+  int x = digitalRead(PROXPIN1);
+  int y = digitalRead(PROXPIN2);
+
+  
+  if (!x || !y) {
     proxDebounce += 1;
 
     if (proxDebounce > 10) {
