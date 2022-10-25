@@ -7,7 +7,7 @@
 #define PROXPIN1  26 // GPIO 26
 #define PROXPIN2  27 // GPIO 27
 
-const byte numChars = 15;
+const byte numChars = 16;
 byte message[numChars];
 boolean newData = false;
 
@@ -26,7 +26,7 @@ struct Motor {
 };
 
 
-unsigned int tubeLength;      // mm
+unsigned int scanLength;      // mm
 unsigned int tubeOffset;      // mm
 unsigned int motorOneSpeed;   // mm/s
 unsigned int motorTwoSpeed;   // deg/s
@@ -43,7 +43,7 @@ unsigned int mode;
 int state = 0;
 
 
-int tubeLengthAddr = 0;
+int scanLengthAddr = 0;
 int tubeOffsetAddr = 2;
 int modeAddr = 4;
 int motorOneSpeedAddr = 6;
@@ -75,7 +75,7 @@ void setup() {
 
 
   // get tube length and offset
-  tubeLength = readIntFromEEPROM(tubeLengthAddr);
+  scanLength = readIntFromEEPROM(scanLengthAddr);
   tubeOffset = readIntFromEEPROM(tubeOffsetAddr);
 
   // get stepover and stepdown 
@@ -162,7 +162,7 @@ void loop() {
       // go through scanning sequence _num_ times, until tube has done a full revolution
       for (int i = 0; i < num; i++) {
         if (motorOne.dirState) {
-          while (motorOne.pos < (tubeOffset + tubeLength)) {
+          while (motorOne.pos < (tubeOffset + scanLength)) {
             Motor *ptr = &motorOne;
             motorStep( ptr );
           }
@@ -289,17 +289,21 @@ void recvWithStartEndMarkers() {
 
     if (newData) {
 
-      unsigned int tempTubeLength = (message[0]<<8) + (message[1]);
-      unsigned int tempTubeOffset = (message[2]<<8) + (message[3]);
-      unsigned int tempMotorOneSpeed = (message[4]<<8) + (message[5]);
-      unsigned int tempMotorTwoSpeed = (message[6]<<8) + (message[7]);
-      unsigned int tempMode = (message[8]<<8) + (message[9]);
-      unsigned int tempStepOver = (message[10]<<8) + (message[11]);
-      unsigned int tempStepDown = (message[12]<<8) + (message[13]);
-      
-      if (tubeLength != tempTubeLength) {
-        tubeLength = tempTubeLength;
-        writeIntIntoEEPROM(tubeLengthAddr, tubeLength);
+      unsigned int tempState = (message[0]<<8) + (message[1]);
+      unsigned int tempScanLength = (message[2]<<8) + (message[3]);
+      unsigned int tempTubeOffset = (message[4]<<8) + (message[5]);
+      unsigned int tempMotorOneSpeed = (message[6]<<8) + (message[7]);
+      unsigned int tempMotorTwoSpeed = (message[8]<<8) + (message[9]);
+      unsigned int tempMode = (message[10]<<8) + (message[11]);
+      unsigned int tempStepOver = (message[12]<<8) + (message[13]);
+      unsigned int tempStepDown = (message[14]<<8) + (message[15]);
+
+      if (state != tempState) {
+         state = tempState;
+      }
+      if (scanLength != tempScanLength) {
+        scanLength = tempScanLength;
+        writeIntIntoEEPROM(scanLengthAddr, scanLength);
       }
       if (tubeOffset != tempTubeOffset) {
         tubeOffset = tempTubeOffset;
