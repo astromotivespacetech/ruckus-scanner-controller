@@ -91,7 +91,7 @@ void setup() {
 
   // calc distance/degrees per step
   distPerStep = mmPerRev / stepsPerRev;
-  degPerStep = 360.0 / stepsPerRev;
+  degPerStep = 360.0 / stepsPerRev; // 0.9
 
   motorOne.dPerStep = distPerStep;
   motorTwo.dPerStep = degPerStep;
@@ -338,7 +338,7 @@ void recvWithStartEndMarkers() {
       }
       if (stepDown != (float)(tempStepDown)*0.01) {
         stepDown = (float)(tempStepDown)*0.01;
-        writeIntIntoEEPROM(stepOverAddr, stepDown);
+        writeIntIntoEEPROM(stepOverAddr, tempStepDown);
       }
 
       newData = false;
