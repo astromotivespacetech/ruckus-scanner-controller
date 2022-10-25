@@ -132,9 +132,6 @@ void loop() {
 
 
   } else if (state == 1) {
-
-    // move the first motor to the start position of the tube
-    motorOne.dirState = HIGH;
     
     while (motorOne.pos < tubeOffset) {
       Motor *ptr = &motorOne;
