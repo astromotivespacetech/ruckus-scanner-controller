@@ -87,11 +87,11 @@ void setup() {
   mode = readIntFromEEPROM(modeAddr);
 
   // calc steps per revolution
-  stepsPerRev = fullStepsPerRev * microsteps;  
+  stepsPerRev = fullStepsPerRev * microsteps;  // 800
 
   // calc distance/degrees per step
   distPerStep = mmPerRev / stepsPerRev;
-  degPerStep = 360.0 / stepsPerRev; // 0.9
+  degPerStep = 360.0 / stepsPerRev; // 0.45
 
   motorOne.dPerStep = distPerStep;
   motorTwo.dPerStep = degPerStep;
@@ -147,7 +147,7 @@ void loop() {
       int angSteps = (int)(stepDown / degPerStep);
   
       // calc how many total sequences to scan entire tube
-      int num = (int)(360.0 / angSteps);
+      int num = (int)(360.0 / stepDown);
 
       // go through scanning sequence _num_ times, until tube has done a full revolution
       for (int i = 0; i < num; i++) {
