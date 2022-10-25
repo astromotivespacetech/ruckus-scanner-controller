@@ -10,9 +10,9 @@
 const byte numChars = 16;
 byte message[numChars];
 boolean newData = false;
+int checkSerialDelay = 1000;  // micros
+unsigned long prevCheck;
 
-int index = 0;
-bool delimiterFlag = false;
 
 struct Motor {
   int dirPin;
@@ -22,6 +22,7 @@ struct Motor {
   unsigned long prevStep;     // micros
   unsigned int stepCounter;
   unsigned long stepDelay;     // micros
+  float dPerStep;
   float pos;                  // mm or angle (deg);
 };
 
@@ -51,8 +52,8 @@ int motorTwoSpeedAddr = 8;
 int stepDownAddr = 10;
 int stepOverAddr = 12;
 
-Motor motorOne { DIRPIN1, STEPPIN1, LOW, LOW, 0, 0, 0, 0.0 };
-Motor motorTwo { DIRPIN2, STEPPIN2, LOW, LOW, 0, 0, 0, 0.0 };
+Motor motorOne { DIRPIN1, STEPPIN1, LOW, LOW, 0, 0, 0, 0.0, 0.0 };
+Motor motorTwo { DIRPIN2, STEPPIN2, LOW, LOW, 0, 0, 0, 0.0, 0.0 };
 
 int proxDebounce = 0;
 
@@ -92,13 +93,12 @@ void setup() {
   distPerStep = mmPerRev / stepsPerRev;
   degPerStep = 360.0 / stepsPerRev;
 
-
+  motorOne.dPerStep = distPerStep;
+  motorTwo.dPerStep = degPerStep;
 
   // set step delays
   motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
   motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
-
-
 
 
   Serial.print("Scan Length: ");
@@ -114,24 +114,17 @@ void setup() {
   Serial.print("Microsteps: ");
   Serial.println(microsteps); 
   
-
-  
 }
 
 void loop() {
 
-  if (state == 0) {
+  if (micros() - prevCheck > checkSerialDelay) {
+    recvWithStartEndMarkers();     
+    prevCheck = micros();
+  }
+  
 
-    recvWithStartEndMarkers();    
-
-//    for (int i = 0; i < numChars; i++) {
-//      Serial.print(message[i]);
-//      Serial.print(" ");
-//    }
-//    Serial.println();
-
-
-  } else if (state == 1) {
+  if (state == 1) {
     
     while (motorOne.pos < tubeOffset) {
       Motor *ptr = &motorOne;
@@ -185,14 +178,16 @@ void loop() {
     }
     
   } else if (state == 2) {
+
+    motorOne.dirState = HIGH;
     
     // run motor homing function until it returns true i.e. until 
     // it hits the proximity sensor, so we start with a known position
-    motorOne.dirState = LOW;
     Motor *ptr = &motorOne;
     while (!motorHoming( ptr )); 
+    
     state = 0; 
-    motorOne.dirState = HIGH;
+    motorOne.dirState = LOW;
 
   }
 
@@ -227,13 +222,14 @@ void motorStep(Motor *m) {
   if (micros() - m->prevStep > m->stepDelay) {
     m->prevStep = micros();
     m->stepState = (m->stepState) ? LOW : HIGH;  // toggle from high to low or vice versa
-
-//    Serial.println(m->stepCounter);
     
     // only increment when stepState is HIGH. If dir is 0, then it will multiply by 
     // -1, thus decrementing stepCounter, otherwise if dir is 1, then it will multiply 
     // by 1, incrementing stepCounter
     m->stepCounter += (1 * m->stepState) * (2 * m->dirState - 1);
+
+    // update position based on the distance per step for this motor
+    m->pos += (1 * m->stepState) * (2 * m->dirState - 1) * m->dPerStep;
     
     digitalWrite(m->dirPin, m->dirState);
     digitalWrite(m->stepPin, m->stepState);
