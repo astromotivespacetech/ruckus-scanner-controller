@@ -170,9 +170,9 @@ void setup() {
      .setCaptionLabel("")
      .setPosition(sectionTwoLeft + 30, tubeOffsetTop)
      .setSize(sliderLength,25)
-     .setRange(0,1000)
+     .setRange(100,1000)
      .setValue(500)
-     .setNumberOfTickMarks(1001)
+     .setNumberOfTickMarks(901)
      .setFont(font1);    
 
   s3 = cp5.addSlider("stepover")
@@ -232,6 +232,22 @@ void draw() {
   text("Tube Offset (mm)", sectionTwoLeft, tubeOffsetTop-20);
   text("Stepover (mm)", sectionTwoLeft, stepoverTop-20);
   text("Stepdown (deg)", sectionTwoLeft, stepdownTop-20);
+  
+  if (port_exists) {
+    if ( port.available() > 0 ) {
+      String val = port.readStringUntil('\n'); 
+      if (val != null) {
+        String[] vals = val.split(",");
+        scanLength = Integer.parseInt(vals[0]);
+        tubeOffset = Integer.parseInt(vals[1]);
+        motorOneSpeed = Integer.parseInt(vals[2]);
+        motorTwoSpeed = Integer.parseInt(vals[3]);
+        mode = Integer.parseInt(vals[4]);
+        stepOver = Integer.parseInt(vals[5]);
+        stepDown = Integer.parseInt(vals[6]);
+      }
+    }
+  }
 }
 
 
