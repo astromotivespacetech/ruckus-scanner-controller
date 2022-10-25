@@ -10,7 +10,7 @@
 const byte numChars = 16;
 byte message[numChars];
 boolean newData = false;
-int checkSerialDelay = 1000;  // micros
+int checkSerialDelay = 10000;  // micros
 unsigned long prevCheck;
 
 
