@@ -167,7 +167,7 @@ void loop() {
         motorOne.dirState = (motorOne.dirState) ? LOW : HIGH; 
 
         // rotate the tube each time
-        for (int j = 0; j < angSteps; j++) {
+        for (int j = 0; j < angSteps*2; j++) {
           Motor *ptr = &motorTwo;
           motorStep( ptr );
         }
