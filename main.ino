@@ -7,10 +7,10 @@
 #define PROXPIN1  26 // GPIO 26
 #define PROXPIN2  27 // GPIO 27
 
-const byte numChars = 16;
+const byte numChars = 18;
 byte message[numChars];
 boolean newData = false;
-int checkSerialDelay = 10000;  // micros
+unsigned long checkSerialDelay = 100000;  // micros
 unsigned long prevCheck;
 
 
@@ -148,10 +148,7 @@ void loop() {
   
       // calc how many total sequences to scan entire tube
       int num = (int)(360.0 / stepDown);
-
-      Serial.println(angSteps);
-      Serial.println(num);
-
+      
       // go through scanning sequence _num_ times, until tube has done a full revolution
       for (int i = 0; i < num; i++) {
         if (motorOne.dirState) {
@@ -258,7 +255,7 @@ void recvWithStartEndMarkers() {
     static byte ndx = 0;
     char startMarker = '<';
     char endMarker = '>';
-    char requestData = '?';
+    char requestData = '.';
     byte rc;
  
     while (Serial.available() > 0 && newData == false) {
@@ -279,7 +276,7 @@ void recvWithStartEndMarkers() {
             }
         } else if (rc == startMarker) {
             recvInProgress = true;
-        } else if (rc == requestData) {
+        } else {
           Serial.print(scanLength);
           Serial.print(",");
           Serial.print(tubeOffset);
@@ -293,7 +290,9 @@ void recvWithStartEndMarkers() {
           Serial.print(stepOver);
           Serial.print(",");
           Serial.print(readIntFromEEPROM(stepDownAddr));
+          Serial.print(",");
           Serial.println();
+          break;
         }
     }
 
@@ -309,6 +308,7 @@ void recvWithStartEndMarkers() {
       unsigned int tempMode = (message[10]<<8) + (message[11]);
       unsigned int tempStepOver = (message[12]<<8) + (message[13]);
       unsigned int tempStepDown = (message[14]<<8) + (message[15]);
+
 
       if (state != tempState) {
          state = tempState;
@@ -341,11 +341,10 @@ void recvWithStartEndMarkers() {
       }
       if (stepDown != (float)(tempStepDown)*0.01) {
         stepDown = (float)(tempStepDown)*0.01;
-        writeIntIntoEEPROM(stepOverAddr, tempStepDown);
+        writeIntIntoEEPROM(stepDownAddr, tempStepDown);
       }
 
       newData = false;
           
     }
     
-}
