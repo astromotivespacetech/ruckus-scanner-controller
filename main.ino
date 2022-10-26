@@ -111,10 +111,12 @@ void loop() {
   
 
   if (state == 1) {
-    
+
+    Motor *ptrOne = &motorOne;
+    Motor *ptrTwo = &motorTwo;
+ 
     while (motorOne.pos < tubeOffset) {
-      Motor *ptr = &motorOne;
-      motorStep( ptr );
+      motorStep( ptrOne );
     }
 
     delay(1000);
@@ -139,13 +141,11 @@ void loop() {
       for (int i = 0; i < num; i++) {
         if (motorOne.dirState) {
           while (motorOne.pos < (tubeOffset + scanLength)) {
-            Motor *ptr = &motorOne;
-            motorStep( ptr );
+            motorStep( ptrOne );
           }
         } else {
           while (motorOne.pos > tubeOffset) {
-            Motor *ptr = &motorOne;
-            motorStep( ptr );
+            motorStep( ptrOne );
           }
         }
         
@@ -154,8 +154,7 @@ void loop() {
 
         // rotate the tube each time
         for (int j = 0; j < angSteps*2; j++) {
-          Motor *ptr = &motorTwo;
-          motorStep( ptr );
+          motorStep( ptrTwo );
         }
       }
 
@@ -169,17 +168,19 @@ void loop() {
 
         // rotate the tube a full rotation
         for (int j = 0; j < stepsPerRev*2; j++) {
-          Motor *ptr = &motorTwo;
-          motorStep( ptr );
+          motorStep( ptrTwo );
         }
+
+        delay(500);
 
         int x = motorOne.pos;
 
         // move linear 
         while (motorOne.pos < x+stepOver) {
-          Motor *ptr = &motorOne;
-          motorStep( ptr );
+          motorStep( ptrOne );
         }
+
+        delay(500);
       }
     }
   
@@ -189,8 +190,8 @@ void loop() {
     
     // run motor homing function until it returns true i.e. until 
     // it hits the proximity sensor, so we start with a known position
-    Motor *ptr = &motorOne;
-    while (!motorHoming( ptr )); 
+    Motor *ptrOne = &motorOne;
+    while (!motorHoming( ptrOne )); 
     
     state = 0; 
     motorOne.dirState = HIGH;
