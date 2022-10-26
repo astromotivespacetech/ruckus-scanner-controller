@@ -236,17 +236,19 @@ void draw() {
   if (port_exists) {
     if ( port.available() > 0 ) {
       String val = port.readStringUntil('\n'); 
-            
-      if (val != null) {
-        String[] vals = val.split(",");
-        scanLength = Integer.parseInt(vals[0]);
-        tubeOffset = Integer.parseInt(vals[1]);
-        motorOneSpeed = Integer.parseInt(vals[2]);
-        motorTwoSpeed = Integer.parseInt(vals[3]);
-        mode = Integer.parseInt(vals[4]);
-        stepOver = Integer.parseInt(vals[5]);
-        stepDown = Integer.parseInt(vals[6]);
-      }
+      
+      println(val);
+      
+      //if (val != null) {
+      //  String[] vals = val.split(",");
+      //  scanLength = Integer.parseInt(vals[0]);
+      //  tubeOffset = Integer.parseInt(vals[1]);
+      //  motorOneSpeed = Integer.parseInt(vals[2]);
+      //  motorTwoSpeed = Integer.parseInt(vals[3]);
+      //  mode = Integer.parseInt(vals[4]);
+      //  stepOver = Integer.parseInt(vals[5]);
+      //  stepDown = Integer.parseInt(vals[6]);
+      //}
     }
   }
 }
@@ -385,3 +387,5 @@ void writeInt(int x) {
   port.write(x >> 8);
   port.write(x & 255);
 }
+  
+
