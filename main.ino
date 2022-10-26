@@ -99,20 +99,6 @@ void setup() {
   // set step delays
   motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
   motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
-
-
-//   Serial.print("Scan Length: ");
-//   Serial.println(scanLength);
-//   Serial.print("Tube Offset: ");
-//   Serial.println(tubeOffset);
-//   Serial.print("Motor 1 Speed: ");
-//   Serial.println(motorOneSpeed); 
-//   Serial.print("Motor 2 Speed: ");
-//   Serial.println(motorTwoSpeed); 
-//   Serial.print("Mode: ");
-//   Serial.println(mode); 
-//   Serial.print("Microsteps: ");
-//   Serial.println(microsteps); 
   
 }
 
@@ -167,16 +153,36 @@ void loop() {
         motorOne.dirState = (motorOne.dirState) ? LOW : HIGH; 
 
         // rotate the tube each time
-        for (int j = 0; j < angSteps; j++) {
+        for (int j = 0; j < angSteps*2; j++) {
           Motor *ptr = &motorTwo;
           motorStep( ptr );
         }
       }
 
-    } else {
-      
+    } else if (mode == 2) {
+
+
+      // calc how many total sequences to scan entire tube
+      int num = (int)(scanLength / stepOver)
+
+      for (int i = 0; i < num; i++) {
+
+        // rotate the tube a full rotation
+        for (int j = 0; j < stepsPerRev*2; j++) {
+          Motor *ptr = &motorTwo;
+          motorStep( ptr );
+        }
+
+        int x = motorOne.pos;
+
+        // move linear 
+        while (motorOne.pos < x+stepOver) {
+          Motor *ptr = &motorOne;
+          motorStep( ptr );
+        }
+      }
     }
-    
+  
   } else if (state == 2) {
 
     motorOne.dirState = LOW;
@@ -348,3 +354,4 @@ void recvWithStartEndMarkers() {
           
     }
     
+}
