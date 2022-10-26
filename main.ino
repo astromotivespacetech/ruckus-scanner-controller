@@ -87,11 +87,11 @@ void setup() {
   mode = readIntFromEEPROM(modeAddr);
 
   // calc steps per revolution
-  stepsPerRev = fullStepsPerRev * microsteps;  // 800
+  stepsPerRev = fullStepsPerRev * microsteps;  
 
   // calc distance/degrees per step
   distPerStep = mmPerRev / stepsPerRev;
-  degPerStep = 360.0 / stepsPerRev; // 0.45
+  degPerStep = 360.0 / stepsPerRev; // 0.9
 
   motorOne.dPerStep = distPerStep;
   motorTwo.dPerStep = degPerStep;
@@ -149,6 +149,9 @@ void loop() {
       // calc how many total sequences to scan entire tube
       int num = (int)(360.0 / stepDown);
 
+      Serial.println(angSteps);
+      Serial.println(num);
+
       // go through scanning sequence _num_ times, until tube has done a full revolution
       for (int i = 0; i < num; i++) {
         if (motorOne.dirState) {
@@ -167,7 +170,7 @@ void loop() {
         motorOne.dirState = (motorOne.dirState) ? LOW : HIGH; 
 
         // rotate the tube each time
-        for (int j = 0; j < angSteps*2; j++) {
+        for (int j = 0; j < angSteps; j++) {
           Motor *ptr = &motorTwo;
           motorStep( ptr );
         }
