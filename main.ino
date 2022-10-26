@@ -163,7 +163,7 @@ void loop() {
 
 
       // calc how many total sequences to scan entire tube
-      int num = (int)(scanLength / stepOver)
+      int num = (int)(scanLength / stepOver);
 
       for (int i = 0; i < num; i++) {
 
