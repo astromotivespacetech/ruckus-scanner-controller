@@ -268,6 +268,12 @@ void draw() {
           cp5.getController("stepdown").setValue(stepDown*0.01);
           k1.setValue(motorOneSpeed);
           k2.setValue(motorTwoSpeed);
+          
+          if (mode == 1) {
+            mode1();
+          } else if (mode == 2) {
+            mode2();
+          }
         }
       }
     }
@@ -324,45 +330,53 @@ void stepdown() {
   stepDown = int(cp5.getController("stepdown").getValue()*100);
 }
 
-//void plus() {
-//  scanlength.setValue(scanlength.getValue() + 1.0);
-//  scanLength = int(scanlength.getValue());
-//}
+void plus() {
+  Controller sl = cp5.getController("scanlength");
+  sl.setValue(sl.getValue() + 1.0);
+  scanLength = int(sl.getValue());
+}
 
-//void minus() {
-//  scanlength.setValue(scanlength.getValue() - 1.0);
-//  scanLength = int(scanlength.getValue());
-//}
+void minus() {
+  Controller sl = cp5.getController("scanlength");
+  sl.setValue(sl.getValue() - 1.0);
+  scanLength = int(sl.getValue());
+}
 
-//void plusTubeOffset() {
-//  tubeoffset.setValue(tubeoffset.getValue() + 1.0);
-//  tubeOffset = int(tubeoffset.getValue());
-//}
+void plusTubeOffset() {
+  Controller to = cp5.getController("tubeoffset");
+  to.setValue(to.getValue() + 1.0);
+  tubeOffset = int(to.getValue());
+}
 
-//void minusTubeOffset() {
-//  tubeoffset.setValue(tubeoffset.getValue() - 1.0);
-//  tubeOffset = int(tubeoffset.getValue());
-//}
+void minusTubeOffset() {
+  Controller to = cp5.getController("tubeoffset");
+  to.setValue(to.getValue() - 1.0);
+  tubeOffset = int(to.getValue());
+}
 
-//void plusStepover() {
-//  stepover.setValue(stepover.getValue() + 1.0);
-//  stepOver = int(stepover.getValue());
-//}
+void plusStepover() {
+  Controller so = cp5.getController("stepover");
+  so.setValue(so.getValue() + 1.0);
+  stepOver = int(so.getValue());
+}
 
-//void minusStepover() {
-//  stepover.setValue(stepover.getValue() - 1.0);
-//  stepOver = int(stepover.getValue());
-//}
+void minusStepover() {
+  Controller so = cp5.getController("stepover");
+  so.setValue(so.getValue() - 1.0);
+  stepOver = int(so.getValue());
+}
 
-//void plusStepdown() {
-//  stepdown.setValue(stepdown.getValue() + 0.5);
-//  stepDown = int(stepdown.getValue()*100);
-//}
+void plusStepdown() {
+  Controller sd = cp5.getController("stepdown");
+  sd.setValue(sd.getValue() + 0.1);
+  stepDown = int(sd.getValue());
+}
 
-//void minusStepdown() {
-//  stepdown.setValue(stepdown.getValue() - 0.5);
-//  stepDown = int(stepdown.getValue()*100);
-//}
+void minusStepdown() {
+  Controller sd = cp5.getController("stepdown");
+  sd.setValue(sd.getValue() - 0.1);
+  stepDown = int(sd.getValue());
+}
 
 void speed1() {
   float f = k1.getValue();
@@ -409,4 +423,4 @@ void writeInt(int x) {
   port.write(x & 255);
 }
   
-
+  
