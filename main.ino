@@ -282,7 +282,7 @@ void recvWithStartEndMarkers() {
             }
         } else if (rc == startMarker) {
             recvInProgress = true;
-        } else {
+        } else if (rc == requestData); {
           Serial.print(scanLength);
           Serial.print(",");
           Serial.print(tubeOffset);
