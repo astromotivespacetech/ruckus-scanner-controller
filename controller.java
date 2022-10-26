@@ -372,14 +372,14 @@ void sendCommand() {
     port.write(">");
   }
   
-  println(state);
-  println(scanLength);
-  println(tubeOffset);
-  println(motorOneSpeed);
-  println(motorTwoSpeed);
-  println(mode);
-  println(stepOver);
-  println(stepDown);
+//   println(state);
+//   println(scanLength);
+//   println(tubeOffset);
+//   println(motorOneSpeed);
+//   println(motorTwoSpeed);
+//   println(mode);
+//   println(stepOver);
+//   println(stepDown);
 
 }
 
