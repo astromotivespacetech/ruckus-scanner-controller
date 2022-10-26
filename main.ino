@@ -261,7 +261,7 @@ void recvWithStartEndMarkers() {
     static byte ndx = 0;
     char startMarker = '<';
     char endMarker = '>';
-    char requestData = '.';
+    char requestData = 'x';
     byte rc;
  
     while (Serial.available() > 0 && newData == false) {
