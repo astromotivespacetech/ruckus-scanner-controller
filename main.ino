@@ -193,7 +193,7 @@ void loop() {
       }
     }
     
-    state = 0;
+    state = 2;
     
   } else if (state == 2) {
 
