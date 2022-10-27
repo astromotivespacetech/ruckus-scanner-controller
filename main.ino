@@ -152,7 +152,7 @@ void loop() {
         delay(500);
 
         // rotate the tube each time
-        while (motorTwo.pos < (stepDown*i) {
+        while (motorTwo.pos < (stepDown*i)) {
           motorStep( ptrTwo );
         }
 
@@ -246,7 +246,7 @@ void motorStep(Motor *m) {
     m->stepCounter += (1 * m->stepState) * (2 * m->dirState - 1);
 
     // update position based on the distance per step for this motor
-    m->pos += (1 * m->stepState) * (2 * (m->dirState*-1) - 1) * m->dPerStep;
+    m->pos -= (1 * m->stepState) * (2 * (m->dirState) - 1) * m->dPerStep;
 
     
     digitalWrite(m->dirPin, m->dirState);
