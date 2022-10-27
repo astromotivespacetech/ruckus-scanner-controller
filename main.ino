@@ -128,8 +128,7 @@ void loop() {
 
     if (mode == 1) {    
 
-      // set direction to HIGH that way the pos updates
-      motorTwo.dirState = HIGH;
+      motorTwo.dirState = LOW;
 
       // calc how many total sequences to scan entire tube
       int num = (int)(360.0 / stepDown);
@@ -170,7 +169,7 @@ void loop() {
       // calc how many total sequences to scan entire tube
       int num = (int)(scanLength / stepOver);
 
-      motorTwo.dirState = HIGH;
+      motorTwo.dirState = LOW;
 
       for (int i = 0; i < num; i++) {
 
@@ -197,7 +196,7 @@ void loop() {
     
   } else if (state == 2) {
 
-    motorOne.dirState = LOW;
+    motorOne.dirState = HIGH;
     
     // run motor homing function until it returns true i.e. until 
     // it hits the proximity sensor, so we start with a known position
@@ -205,7 +204,7 @@ void loop() {
     while (!motorHoming( ptrOne )); 
     
     state = 0; 
-    motorOne.dirState = HIGH;
+    motorOne.dirState = LOW;
 
   }
 
@@ -247,7 +246,8 @@ void motorStep(Motor *m) {
     m->stepCounter += (1 * m->stepState) * (2 * m->dirState - 1);
 
     // update position based on the distance per step for this motor
-    m->pos += (1 * m->stepState) * (2 * m->dirState - 1) * m->dPerStep;
+    m->pos += (1 * m->stepState) * (2 * (m->dirState*-1) - 1) * m->dPerStep;
+
     
     digitalWrite(m->dirPin, m->dirState);
     digitalWrite(m->stepPin, m->stepState);
