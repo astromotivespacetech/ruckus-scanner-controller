@@ -128,17 +128,15 @@ void loop() {
 
     if (mode == 1) {    
 
-//      // calc how many steps the linear motor has to move each time
-//      int  linearSteps = distPerStep * scanLength;
-      
-      // calc how many steps the rotary motor has to move each time
-      int angSteps = (int)(stepDown / degPerStep);
-  
+      // set direction to HIGH that way the pos updates
+      motorTwo.dirState = HIGH;
+
       // calc how many total sequences to scan entire tube
       int num = (int)(360.0 / stepDown);
       
       // go through scanning sequence _num_ times, until tube has done a full revolution
       for (int i = 0; i < num; i++) {
+        
         if (motorOne.dirState) {
           while (motorOne.pos < (tubeOffset + scanLength)) {
             motorStep( ptrOne );
@@ -148,15 +146,23 @@ void loop() {
             motorStep( ptrOne );
           }
         }
-        
+                
         // change direction of linear motor each time
         motorOne.dirState = (motorOne.dirState) ? LOW : HIGH; 
 
+        delay(500);
+
         // rotate the tube each time
-        for (int j = 0; j < angSteps*2; j++) {
+        while (motorTwo.pos < (stepDown*i) {
           motorStep( ptrTwo );
         }
+
+        delay(500);
+
       }
+
+      // reset motor two pos for next sequence
+      motorTwo.pos = 0;
 
     } else if (mode == 2) {
 
@@ -164,12 +170,15 @@ void loop() {
       // calc how many total sequences to scan entire tube
       int num = (int)(scanLength / stepOver);
 
+      motorTwo.dirState = HIGH;
+
       for (int i = 0; i < num; i++) {
 
         // rotate the tube a full rotation
-        for (int j = 0; j < stepsPerRev*2; j++) {
+        while (motorTwo.pos < 360 ) {
           motorStep( ptrTwo );
         }
+        motorTwo.pos = 0;
 
         delay(500);
 
@@ -183,7 +192,9 @@ void loop() {
         delay(500);
       }
     }
-  
+    
+    state = 0;
+    
   } else if (state == 2) {
 
     motorOne.dirState = LOW;
@@ -354,5 +365,5 @@ void recvWithStartEndMarkers() {
       newData = false;
           
     }
-    
+        
 }
