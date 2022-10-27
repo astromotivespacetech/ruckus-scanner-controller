@@ -236,6 +236,13 @@ bool motorHoming(Motor *m) {
 
 
 void motorStep(Motor *m) {
+
+  if (micros() - prevCheck > checkSerialDelay) {
+    recvWithStartEndMarkers();     
+    prevCheck = micros();
+  }
+
+  
   if (micros() - m->prevStep > m->stepDelay) {
     m->prevStep = micros();
     m->stepState = (m->stepState) ? LOW : HIGH;  // toggle from high to low or vice versa
@@ -252,6 +259,8 @@ void motorStep(Motor *m) {
     digitalWrite(m->dirPin, m->dirState);
     digitalWrite(m->stepPin, m->stepState);
   }
+
+  
 }
 
 void writeIntIntoEEPROM(int address, unsigned int number) { 
