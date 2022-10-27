@@ -136,7 +136,7 @@ void loop() {
       // go through scanning sequence _num_ times, until tube has done a full revolution
       for (int i = 0; i < num; i++) {
         
-        if (motorOne.dirState) {
+        if (!motorOne.dirState) {
           while (motorOne.pos < (tubeOffset + scanLength)) {
             motorStep( ptrOne );
           }
