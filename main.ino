@@ -135,6 +135,11 @@ void loop() {
       
       // go through scanning sequence _num_ times, until tube has done a full revolution
       for (int i = 0; i < num; i++) {
+
+        if (state == 0) {
+          state = 2;
+          break;
+        }
         
         if (!motorOne.dirState) {
           while (motorOne.pos < (tubeOffset + scanLength)) {
@@ -172,6 +177,11 @@ void loop() {
       motorTwo.dirState = LOW;
 
       for (int i = 0; i < num; i++) {
+
+        if (state == 0) {
+          state = 2;
+          break;
+        }
 
         // rotate the tube a full rotation
         while (motorTwo.pos < 360 ) {
@@ -242,7 +252,6 @@ void motorStep(Motor *m) {
     prevCheck = micros();
   }
 
-  
   if (micros() - m->prevStep > m->stepDelay) {
     m->prevStep = micros();
     m->stepState = (m->stepState) ? LOW : HIGH;  // toggle from high to low or vice versa
@@ -259,8 +268,6 @@ void motorStep(Motor *m) {
     digitalWrite(m->dirPin, m->dirState);
     digitalWrite(m->stepPin, m->stepState);
   }
-
-  
 }
 
 void writeIntIntoEEPROM(int address, unsigned int number) { 
