@@ -155,11 +155,11 @@ void setup() {
     
   k1 = cp5.addKnob("speed1")
    .setCaptionLabel("Linear Speed (mm/s)")
-   .setRange(20,100)
+   .setRange(20,300)
    .setValue(30)
    .setPosition(sectionThreeLeft,200)
    .setRadius(100)
-   .setNumberOfTickMarks(80)
+   .setNumberOfTickMarks(28)
    .setTickMarkLength(4)
    .snapToTickMarks(true)
    .setDragDirection(Knob.VERTICAL)
@@ -208,9 +208,9 @@ void setup() {
     .setCaptionLabel("")
     .setPosition(sectionTwoLeft + 30, stepdownTop)
     .setSize(sliderLength,25)
-    .setRange(0.5,5.0)
+    .setRange(0.5,8.0)
     .setValue(stepDown*0.01)
-    .setNumberOfTickMarks(10)
+    .setNumberOfTickMarks(16)
     .setFont(font1);
     
    cp5.addSlider("tubediameter")
@@ -277,7 +277,7 @@ void draw() {
         if (val != null) {
           String[] vals = val.split(",");
           
-          if (vals.length == 8) {
+          if (vals.length == 9) {
             scanLength = Integer.parseInt(vals[0]);
             tubeOffset = Integer.parseInt(vals[1]);
             motorOneSpeed = Integer.parseInt(vals[2]);
