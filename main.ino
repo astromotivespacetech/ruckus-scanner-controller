@@ -42,7 +42,7 @@ unsigned int microsteps = 4;
 int stepsPerRev;
 float distPerStep;
 float degPerStep;
-const int wheelDiameter = 5;  // mm
+const float wheelDiameter = 63.5; // mm
 
 
 unsigned int mode;
@@ -149,6 +149,11 @@ void loop() {
       
       // go through scanning sequence _num_ times, until tube has done a full revolution
       for (int i = 0; i < num; i++) {
+
+        if (state == 0) {
+          state = 2;
+          break;
+        }
         
         if (!motorOne.dirState) {
           while (motorOne.pos < (tubeOffset + scanLength)) {
@@ -186,6 +191,11 @@ void loop() {
       motorTwo.dirState = LOW;
 
       for (int i = 0; i < num; i++) {
+
+        if (state == 0) {
+          state = 2;
+          break;
+        }
 
         // rotate the tube a full rotation
         if (!motorTwo.dirState) {
@@ -265,7 +275,11 @@ void motorStep(Motor *m) {
     // update position based on the distance per step for this motor
     m->pos -= (1 * m->stepState) * (2 * (m->dirState) - 1) * m->dPerStep;
 
-    
+    if (micros() - prevCheck > checkSerialDelay) {
+      recvWithStartEndMarkers();     
+      prevCheck = micros();
+    }
+
     digitalWrite(m->dirPin, m->dirState);
     digitalWrite(m->stepPin, m->stepState);
   }
@@ -327,6 +341,7 @@ void recvWithStartEndMarkers() {
           Serial.print(readIntFromEEPROM(stepDownAddr));
           Serial.print(",");
           Serial.print(tubeDiameter);
+          Serial.print(",");
           Serial.println();
           break;
         }
