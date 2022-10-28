@@ -380,8 +380,8 @@ void recvWithStartEndMarkers() {
         stepDown = (float)(tempStepDown)*0.01;
         writeIntIntoEEPROM(stepDownAddr, tempStepDown);
       }
-      if (tubeDiameter != (tempTubeDiameter) {
-        tubediameter = tempTubeDiameter);
+      if (tubeDiameter != tempTubeDiameter) {
+        tubeDiameter = tempTubeDiameter;
         writeIntIntoEEPROM(tubeDiameterAddr, tempTubeDiameter);
         float tubeCirc = tubeDiameter * PI;
         float wheelCirc = wheelDiameter * PI;
