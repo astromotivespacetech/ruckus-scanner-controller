@@ -1,13 +1,13 @@
 #include <EEPROM.h>
 
-#define STEPPIN1  22 // GPIO 23
-#define DIRPIN1   23 // GPIO 22
-#define STEPPIN2  24 // GPIO 25
-#define DIRPIN2   25 // GPIO 24
-#define PROXPIN1  26 // GPIO 26
-#define PROXPIN2  27 // GPIO 27
+#define STEPPIN1  22 
+#define DIRPIN1   23
+#define STEPPIN2  24 
+#define DIRPIN2   25
+#define PROXPIN1  26
+#define PROXPIN2  27
 
-const byte numChars = 18;
+const byte numChars = 20;
 byte message[numChars];
 boolean newData = false;
 unsigned long checkSerialDelay = 100000;  // micros
@@ -33,6 +33,8 @@ unsigned int motorOneSpeed;   // mm/s
 unsigned int motorTwoSpeed;   // deg/s
 unsigned int stepOver;        // mm
 float stepDown;               // deg
+unsigned int tubeDiameter;    // mm 
+
 
 const float mmPerRev = 10.0;      // mm
 const int fullStepsPerRev = 200;
@@ -40,10 +42,13 @@ unsigned int microsteps = 4;
 int stepsPerRev;
 float distPerStep;
 float degPerStep;
+const int wheelDiameter = 5;  // mm
+
+
 unsigned int mode;
 int state = 0;
 
-
+// addresses
 int scanLengthAddr = 0;
 int tubeOffsetAddr = 2;
 int modeAddr = 4;
@@ -51,6 +56,7 @@ int motorOneSpeedAddr = 6;
 int motorTwoSpeedAddr = 8;
 int stepDownAddr = 10;
 int stepOverAddr = 12;
+int tubeDiameterAddr = 14;
 
 Motor motorOne { DIRPIN1, STEPPIN1, LOW, LOW, 0, 0, 0, 0.0, 0.0 };
 Motor motorTwo { DIRPIN2, STEPPIN2, LOW, LOW, 0, 0, 0, 0.0, 0.0 };
@@ -86,12 +92,20 @@ void setup() {
   // get mode
   mode = readIntFromEEPROM(modeAddr);
 
+  // get diameter
+  tubeDiameter = readIntFromEEPROM(tubeDiameterAddr);
+
   // calc steps per revolution
   stepsPerRev = fullStepsPerRev * microsteps;  
 
+  // calc circumference ratio
+  float tubeCirc = tubeDiameter * PI;
+  float wheelCirc = wheelDiameter * PI;
+  float ratio = wheelCirc / tubeCirc;
+
   // calc distance/degrees per step
   distPerStep = mmPerRev / stepsPerRev;
-  degPerStep = 360.0 / stepsPerRev; // 0.9
+  degPerStep = (360.0 / stepsPerRev) * ratio; 
 
   motorOne.dPerStep = distPerStep;
   motorTwo.dPerStep = degPerStep;
@@ -135,11 +149,6 @@ void loop() {
       
       // go through scanning sequence _num_ times, until tube has done a full revolution
       for (int i = 0; i < num; i++) {
-
-        if (state == 0) {
-          state = 2;
-          break;
-        }
         
         if (!motorOne.dirState) {
           while (motorOne.pos < (tubeOffset + scanLength)) {
@@ -178,23 +187,25 @@ void loop() {
 
       for (int i = 0; i < num; i++) {
 
-        if (state == 0) {
-          state = 2;
-          break;
-        }
-
         // rotate the tube a full rotation
-        while (motorTwo.pos < 360 ) {
-          motorStep( ptrTwo );
+        if (!motorTwo.dirState) {
+          while (motorTwo.pos < 360 ) {
+            motorStep( ptrTwo );
+          }
+        } else {
+          while (motorTwo.pos > 0 ) {
+            motorStep( ptrTwo );
+          }
         }
-        motorTwo.pos = 0;
+        
+        motorTwo.dirState = (motorTwo.dirState) ? LOW : HIGH; 
 
         delay(500);
 
-        int x = motorOne.pos;
+        int dist = motorOne.pos + stepOver;
 
         // move linear 
-        while (motorOne.pos < x+stepOver) {
+        while (motorOne.pos < dist) {
           motorStep( ptrOne );
         }
 
@@ -225,12 +236,8 @@ void loop() {
 
 bool motorHoming(Motor *m) {
   bool homed = false;
-
-  int x = digitalRead(PROXPIN1);
-  int y = digitalRead(PROXPIN2);
-
   
-  if (!x || !y) {
+  if (!digitalRead(PROXPIN1)) {
     proxDebounce += 1;
 
     if (proxDebounce > 10) {
@@ -246,12 +253,6 @@ bool motorHoming(Motor *m) {
 
 
 void motorStep(Motor *m) {
-
-  if (micros() - prevCheck > checkSerialDelay) {
-    recvWithStartEndMarkers();     
-    prevCheck = micros();
-  }
-
   if (micros() - m->prevStep > m->stepDelay) {
     m->prevStep = micros();
     m->stepState = (m->stepState) ? LOW : HIGH;  // toggle from high to low or vice versa
@@ -325,6 +326,7 @@ void recvWithStartEndMarkers() {
           Serial.print(",");
           Serial.print(readIntFromEEPROM(stepDownAddr));
           Serial.print(",");
+          Serial.print(tubeDiameter);
           Serial.println();
           break;
         }
@@ -342,6 +344,7 @@ void recvWithStartEndMarkers() {
       unsigned int tempMode = (message[10]<<8) + (message[11]);
       unsigned int tempStepOver = (message[12]<<8) + (message[13]);
       unsigned int tempStepDown = (message[14]<<8) + (message[15]);
+      unsigned int tempTubeDiameter = (message[16]<<8) + (message[17]);
 
 
       if (state != tempState) {
@@ -376,6 +379,15 @@ void recvWithStartEndMarkers() {
       if (stepDown != (float)(tempStepDown)*0.01) {
         stepDown = (float)(tempStepDown)*0.01;
         writeIntIntoEEPROM(stepDownAddr, tempStepDown);
+      }
+      if (tubeDiameter != (tempTubeDiameter) {
+        tubediameter = tempTubeDiameter);
+        writeIntIntoEEPROM(tubeDiameterAddr, tempTubeDiameter);
+        float tubeCirc = tubeDiameter * PI;
+        float wheelCirc = wheelDiameter * PI;
+        float ratio = wheelCirc / tubeCirc;
+        degPerStep = (360.0 / stepsPerRev) * ratio; 
+        motorTwo.dPerStep = degPerStep;
       }
 
       newData = false;
