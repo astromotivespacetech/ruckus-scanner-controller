@@ -14,9 +14,9 @@ int H = 1120;
 PFont font1;
 
 ControlP5 cp5;
-Button b1, b2, b3, b5, b6, b7, b8, b9, b10, b11, b12, mode1, mode2;           
+Button b1, b2, b3, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, mode1, mode2;           
 Knob k1, k2;
-Slider scanlength, tubeoffset, stepover, stepdown;
+Slider scanlength, tubeoffset, stepover, stepdown, tubediameter;
 
 int state = 0;
 int scanLength = 1000;
@@ -26,6 +26,7 @@ int motorTwoSpeed = 90;
 int mode = 1;
 int stepOver = 5;
 int stepDown = 100;
+int tubeDiameter = 75;
 
 int sectionOneLeft = 100;
 int sectionOneTop = 200;
@@ -39,6 +40,7 @@ int scanLengthTop = sectionOneTop;
 int tubeOffsetTop = scanLengthTop + margin;
 int stepoverTop = scanLengthTop + margin*2;
 int stepdownTop = scanLengthTop + margin*3;
+int tubediameterTop = scanLengthTop + margin*4;
 int sliderLength = 400;
 
 
@@ -56,8 +58,8 @@ void setup() {
   
   try {
     // Open the port you are using at the rate you want:
-    //port = new Serial(this, ports[ports.length-1], 115200);
-    port = new Serial(this, "/dev/cu.usbmodem142401", 115200);
+    port = new Serial(this, ports[ports.length-1], 115200);
+    //port = new Serial(this, "/dev/cu.usbmodem142401", 115200);
     port_exists = true;
   } catch (Exception e) {
     e.printStackTrace();
@@ -91,8 +93,6 @@ void setup() {
     .setSize(200, 70)
     .setFont(font1);
     
-  
-
   b5 = cp5.addButton("plus")
     .setCaptionLabel("+")
     .setPosition(sectionTwoLeft+sliderLength+35, scanLengthTop)
@@ -141,13 +141,25 @@ void setup() {
     .setSize(25, 25)
     .setFont(font1);
     
+  b13 = cp5.addButton("plusTubediameter")
+    .setCaptionLabel("+")
+    .setPosition(sectionTwoLeft+sliderLength+35, tubediameterTop)
+    .setSize(25, 25)
+    .setFont(font1);
+  
+  b14 = cp5.addButton("minusTubediameter")
+    .setCaptionLabel("-")
+    .setPosition(sectionTwoLeft, tubediameterTop)
+    .setSize(25, 25)
+    .setFont(font1);
+    
   k1 = cp5.addKnob("speed1")
    .setCaptionLabel("Linear Speed (mm/s)")
-   .setRange(10,50)
+   .setRange(20,100)
    .setValue(30)
    .setPosition(sectionThreeLeft,200)
    .setRadius(100)
-   .setNumberOfTickMarks(40)
+   .setNumberOfTickMarks(80)
    .setTickMarkLength(4)
    .snapToTickMarks(true)
    .setDragDirection(Knob.VERTICAL)
@@ -155,11 +167,11 @@ void setup() {
  
   k2 = cp5.addKnob("speed2")
    .setCaptionLabel("Angular Speed (deg/s)")
-   .setRange(90,360)
+   .setRange(90,540)
    .setValue(180)
    .setPosition(sectionThreeLeft,550)
    .setRadius(100)
-   .setNumberOfTickMarks(6)
+   .setNumberOfTickMarks(10)
    .setTickMarkLength(4)
    .snapToTickMarks(true)
    .setDragDirection(Knob.VERTICAL)
@@ -196,9 +208,18 @@ void setup() {
     .setCaptionLabel("")
     .setPosition(sectionTwoLeft + 30, stepdownTop)
     .setSize(sliderLength,25)
-    .setRange(0.1,2.0)
+    .setRange(0.5,5.0)
     .setValue(stepDown*0.01)
-    .setNumberOfTickMarks(20)
+    .setNumberOfTickMarks(10)
+    .setFont(font1);
+    
+   cp5.addSlider("tubediameter")
+    .setCaptionLabel("")
+    .setPosition(sectionTwoLeft + 30, tubediameterTop)
+    .setSize(sliderLength,25)
+    .setRange(10,100)
+    .setValue(tubeDiameter)
+    .setNumberOfTickMarks(91)
     .setFont(font1);
     
   mode1 = cp5.addButton("mode1")
@@ -225,8 +246,7 @@ void setup() {
   k2.getCaptionLabel().toUpperCase(false);
   mode1.getCaptionLabel().toUpperCase(false);
   mode2.getCaptionLabel().toUpperCase(false);
-  
-  
+ 
   
 }
 
@@ -243,38 +263,47 @@ void draw() {
   text("Tube Offset (mm)", sectionTwoLeft, tubeOffsetTop-20);
   text("Stepover (mm)", sectionTwoLeft, stepoverTop-20);
   text("Stepdown (deg)", sectionTwoLeft, stepdownTop-20);
+  text("Tube Diameter (mm)", sectionTwoLeft, tubediameterTop-20);
+  
   
   if (port_exists) {
     if ( port.available() > 0 ) {
       String val = port.readStringUntil('\n'); 
       
-      println(val);
+      try {
+        println(val);
+      
             
-      if (val != null) {
-        String[] vals = val.split(",");
-        
-        if (vals.length == 8) {
-          scanLength = Integer.parseInt(vals[0]);
-          tubeOffset = Integer.parseInt(vals[1]);
-          motorOneSpeed = Integer.parseInt(vals[2]);
-          motorTwoSpeed = Integer.parseInt(vals[3]);
-          mode = Integer.parseInt(vals[4]);
-          stepOver = Integer.parseInt(vals[5]);
-          stepDown = Integer.parseInt(vals[6]);
+        if (val != null) {
+          String[] vals = val.split(",");
           
-          cp5.getController("scanlength").setValue(parseFloat(scanLength));
-          cp5.getController("tubeoffset").setValue(parseFloat(tubeOffset));
-          cp5.getController("stepover").setValue(parseFloat(stepOver));
-          cp5.getController("stepdown").setValue(stepDown*0.01);
-          k1.setValue(motorOneSpeed);
-          k2.setValue(motorTwoSpeed);
-          
-          if (mode == 1) {
-            mode1();
-          } else if (mode == 2) {
-            mode2();
+          if (vals.length == 8) {
+            scanLength = Integer.parseInt(vals[0]);
+            tubeOffset = Integer.parseInt(vals[1]);
+            motorOneSpeed = Integer.parseInt(vals[2]);
+            motorTwoSpeed = Integer.parseInt(vals[3]);
+            mode = Integer.parseInt(vals[4]);
+            stepOver = Integer.parseInt(vals[5]);
+            stepDown = Integer.parseInt(vals[6]);
+            tubeDiameter = Integer.parseInt(vals[7]);
+            
+            cp5.getController("scanlength").setValue(parseFloat(scanLength));
+            cp5.getController("tubeoffset").setValue(parseFloat(tubeOffset));
+            cp5.getController("stepover").setValue(parseFloat(stepOver));
+            cp5.getController("stepdown").setValue(stepDown*0.01);
+            cp5.getController("tubediameter").setValue(parseFloat(tubeDiameter));
+            k1.setValue(motorOneSpeed);
+            k2.setValue(motorTwoSpeed);
+            
+            if (mode == 1) {
+              mode1();
+            } else if (mode == 2) {
+              mode2();
+            }
           }
         }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
     }
   }
@@ -330,6 +359,10 @@ void stepdown() {
   stepDown = int(cp5.getController("stepdown").getValue()*100);
 }
 
+void tubediameter() {
+  tubeDiameter = int(cp5.getController("tubediameter").getValue());
+}
+
 void plus() {
   Controller sl = cp5.getController("scanlength");
   sl.setValue(sl.getValue() + 1.0);
@@ -368,14 +401,26 @@ void minusStepover() {
 
 void plusStepdown() {
   Controller sd = cp5.getController("stepdown");
-  sd.setValue(sd.getValue() + 0.1);
+  sd.setValue(sd.getValue() + 0.5);
   stepDown = int(sd.getValue());
 }
 
 void minusStepdown() {
   Controller sd = cp5.getController("stepdown");
-  sd.setValue(sd.getValue() - 0.1);
+  sd.setValue(sd.getValue() - 0.5);
   stepDown = int(sd.getValue());
+}
+
+void plusTubediameter() {
+  Controller td = cp5.getController("tubediameter");
+  td.setValue(td.getValue() + 1.0);
+  tubeDiameter = int(td.getValue());
+}
+
+void minusTubediameter() {
+  Controller td = cp5.getController("tubediameter");
+  td.setValue(td.getValue() - 1.0);
+  tubeDiameter = int(td.getValue());
 }
 
 void speed1() {
@@ -404,6 +449,7 @@ void sendCommand() {
     writeInt(mode);
     writeInt(stepOver);
     writeInt(stepDown);
+    writeInt(tubeDiameter);
     port.write(">");
   }
   
