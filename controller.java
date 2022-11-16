@@ -14,9 +14,10 @@ int H = 1120;
 PFont font1;
 
 ControlP5 cp5;
-Button b1, b2, b3, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, mode1, mode2;           
+Button b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, mode1, mode2;           
 Knob k1, k2;
-Slider scanlength, tubeoffset, stepover, stepdown, tubediameter;
+Slider scanlength, tubeoffset, stepover, stepdown, tubediameter, linearpos, angularpos;
+
 
 int state = 0;
 int scanLength = 1000;
@@ -27,6 +28,8 @@ int mode = 1;
 int stepOver = 5;
 int stepDown = 100;
 int tubeDiameter = 75;
+int linearPos = 0;
+int angularPos = 0;
 
 int sectionOneLeft = 100;
 int sectionOneTop = 200;
@@ -48,8 +51,8 @@ int sliderLength = 400;
 
 
 void setup() {
-  //size(1792, 1120);  
-  size(1792, 800);  
+  size(1792, 1120);  
+  //size(1792, 800);  
   font1 = createFont("Monospaced", 16);
   
   // List all the available serial ports:
@@ -92,6 +95,12 @@ void setup() {
     .setPosition(sectionOneLeft+buttonWidth+10, sectionOneTop + buttonSpacing)
     .setSize(200, 70)
     .setFont(font1);
+    
+  b4 = cp5.addButton("jog")
+    .setCaptionLabel("Jog")
+    .setPosition(sectionOneLeft, sectionOneTop + buttonSpacing*6)
+    .setSize(200, 70)
+    .setFont(font1);  
     
   b5 = cp5.addButton("plus")
     .setCaptionLabel("+")
@@ -177,6 +186,24 @@ void setup() {
    .setDragDirection(Knob.VERTICAL)
    .setFont(font1);
    
+  linearpos = cp5.addSlider("linearpos")
+   .setCaptionLabel("")
+   .setRange(0,scanLength+tubeOffset)
+   .setValue(180)
+   .setPosition(sectionOneLeft,700)
+   .setSize(sliderLength,25)
+   .setNumberOfTickMarks(scanLength+tubeOffset+1)
+   .setFont(font1);
+   
+  linearpos = cp5.addSlider("angularpos")
+   .setCaptionLabel("")
+   .setRange(0,360)
+   .setValue(0)
+   .setPosition(sectionOneLeft,600)
+   .setSize(sliderLength,25)
+   .setNumberOfTickMarks(361)
+   .setFont(font1);
+   
   cp5.addSlider("scanlength")
      .setCaptionLabel("")
      .setPosition(sectionTwoLeft + 30, scanLengthTop)
@@ -241,7 +268,7 @@ void setup() {
   b1.getCaptionLabel().toUpperCase(false);
   b2.getCaptionLabel().toUpperCase(false);
   b3.getCaptionLabel().toUpperCase(false);
-  //b4.getCaptionLabel().toUpperCase(false);
+  b4.getCaptionLabel().toUpperCase(false);
   k1.getCaptionLabel().toUpperCase(false);
   k2.getCaptionLabel().toUpperCase(false);
   mode1.getCaptionLabel().toUpperCase(false);
@@ -264,7 +291,10 @@ void draw() {
   text("Stepover (mm)", sectionTwoLeft, stepoverTop-20);
   text("Stepdown (deg)", sectionTwoLeft, stepdownTop-20);
   text("Tube Diameter (mm)", sectionTwoLeft, tubediameterTop-20);
-  
+
+  text("Angular Position (deg)", sectionOneLeft, 580);
+  text("Linear Position (mm)", sectionOneLeft, 680);
+
   
   if (port_exists) {
     if ( port.available() > 0 ) {
@@ -312,56 +342,6 @@ void draw() {
 
 
 
-void save() {
-  sendCommand(); 
-}
-
-void run() {  
-  int s = (b2.getCaptionLabel().getText() == "Start") ? 1 : 0;
-  String x = (b2.getCaptionLabel().getText() == "Start") ? "Stop" : "Start";
-  b2.setCaptionLabel(x);
-  state = s;
-  sendCommand();
-}
-
-
-void home() {
-  state = 2;
-  sendCommand();
-  state = 0;
-}
-
-void mode1() {
-  mode = 1;
-  mode1.setColorBackground(#2266cc);
-  mode2.setColorBackground(#444444);
-}
-
-void mode2() {
-  mode = 2;
-  mode2.setColorBackground(#2266cc);
-  mode1.setColorBackground(#444444);
-}
-
-void scanlength() {
-  scanLength = int(cp5.getController("scanlength").getValue());
-}
-
-void tubeoffset() {
-  tubeOffset = int(cp5.getController("tubeoffset").getValue());
-}
-
-void stepover() {
-  stepOver = int(cp5.getController("stepover").getValue());
-}
-
-void stepdown() {
-  stepDown = int(cp5.getController("stepdown").getValue()*100);
-}
-
-void tubediameter() {
-  tubeDiameter = int(cp5.getController("tubediameter").getValue());
-}
 
 void plus() {
   Controller sl = cp5.getController("scanlength");
@@ -423,6 +403,63 @@ void minusTubediameter() {
   tubeDiameter = int(td.getValue());
 }
 
+
+
+
+void save() {
+  sendCommand(); 
+}
+
+void run() {  
+  int s = (b2.getCaptionLabel().getText() == "Start") ? 1 : 0;
+  String x = (b2.getCaptionLabel().getText() == "Start") ? "Stop" : "Start";
+  b2.setCaptionLabel(x);
+  state = s;
+  sendCommand();
+}
+
+void home() {
+  state = 2;
+  sendCommand();
+  state = 0;
+}
+
+void mode1() {
+  mode = 1;
+  mode1.setColorBackground(#2266cc);
+  mode2.setColorBackground(#444444);
+}
+
+void mode2() {
+  mode = 2;
+  mode2.setColorBackground(#2266cc);
+  mode1.setColorBackground(#444444);
+}
+
+void jog() {
+  jogCommand();
+}
+
+void scanlength() {
+  scanLength = int(cp5.getController("scanlength").getValue());
+}
+
+void tubeoffset() {
+  tubeOffset = int(cp5.getController("tubeoffset").getValue());
+}
+
+void stepover() {
+  stepOver = int(cp5.getController("stepover").getValue());
+}
+
+void stepdown() {
+  stepDown = int(cp5.getController("stepdown").getValue()*100);
+}
+
+void tubediameter() {
+  tubeDiameter = int(cp5.getController("tubediameter").getValue());
+}
+
 void speed1() {
   float f = k1.getValue();
   motorOneSpeed = int(f);
@@ -431,6 +468,14 @@ void speed1() {
 void speed2() {
   float f = k2.getValue();
   motorTwoSpeed = int(f);
+}
+
+void linearpos() {
+  linearPos = int(cp5.getController("linearpos").getValue());
+}
+
+void angularpos() {
+  angularPos = int(cp5.getController("angularpos").getValue());
 }
 
 
@@ -464,9 +509,18 @@ void sendCommand() {
 
 }
 
+void jogCommand() {
+  
+  if (port_exists) {
+    port.write("y");
+    writeInt(linearPos);
+    writeInt(angularPos);
+    port.write(">");
+  }
+}
+
 void writeInt(int x) {
   port.write(x >> 8);
   port.write(x & 255);
 }
-  
   
