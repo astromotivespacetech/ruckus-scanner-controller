@@ -24,6 +24,7 @@ struct Motor {
   unsigned long stepDelay;     // micros
   float dPerStep;
   float pos;                  // mm or angle (deg);
+  int type;
 };
 
 
@@ -58,8 +59,8 @@ int stepDownAddr = 10;
 int stepOverAddr = 12;
 int tubeDiameterAddr = 14;
 
-Motor motorOne { DIRPIN1, STEPPIN1, LOW, LOW, 0, 0, 0, 0.0, 0.0 };
-Motor motorTwo { DIRPIN2, STEPPIN2, LOW, LOW, 0, 0, 0, 0.0, 0.0 };
+Motor motorOne { DIRPIN1, STEPPIN1, LOW, LOW, 0, 0, 0, 0.0, 0.0, 0 };
+Motor motorTwo { DIRPIN2, STEPPIN2, LOW, LOW, 0, 0, 0, 0.0, 0.0, 1 };
 
 int proxDebounce = 0;
 
@@ -129,7 +130,7 @@ void loop() {
     Motor *ptrOne = &motorOne;
     Motor *ptrTwo = &motorTwo;
  
-    while (motorOne.pos < tubeOffset) {
+    while (motorOne.pos <= tubeOffset) {
       motorStep( ptrOne );
     }
 
@@ -156,11 +157,11 @@ void loop() {
         }
         
         if (!motorOne.dirState) {
-          while (motorOne.pos < (tubeOffset + scanLength)) {
+          while (motorOne.pos <= (tubeOffset + scanLength)) {
             motorStep( ptrOne );
           }
         } else {
-          while (motorOne.pos > tubeOffset) {
+          while (motorOne.pos >= tubeOffset) {
             motorStep( ptrOne );
           }
         }
@@ -171,7 +172,7 @@ void loop() {
         delay(500);
 
         // rotate the tube each time
-        while (motorTwo.pos < (stepDown*i)) {
+        while (motorTwo.pos <= (stepDown*i)) {
           motorStep( ptrTwo );
         }
 
@@ -199,7 +200,7 @@ void loop() {
 
         // rotate the tube a full rotation
         if (!motorTwo.dirState) {
-          while (motorTwo.pos < 360 ) {
+          while (motorTwo.pos <= 360.0 ) {
             motorStep( ptrTwo );
           }
         } else {
@@ -215,7 +216,7 @@ void loop() {
         int dist = motorOne.pos + stepOver;
 
         // move linear 
-        while (motorOne.pos < dist) {
+        while (motorOne.pos <= dist) {
           motorStep( ptrOne );
         }
 
@@ -250,7 +251,7 @@ bool motorHoming(Motor *m) {
   if (!digitalRead(PROXPIN1)) {
     proxDebounce += 1;
 
-    if (proxDebounce > 10) {
+    if (proxDebounce > 5) {
       homed = true;
       m->pos = 0;      // set position to zero
     }
@@ -274,6 +275,17 @@ void motorStep(Motor *m) {
 
     // update position based on the distance per step for this motor
     m->pos -= (1 * m->stepState) * (2 * (m->dirState) - 1) * m->dPerStep;
+
+
+    // check angular position and reset if needed (always 0 to 360)
+    if (m->type) {
+      if (m->pos > 360.0) {
+        m->pos -= 360.0;
+      } else if (m->pos < 0.0) {
+        m->pos += 360.0;
+      }
+    }
+
 
     if (micros() - prevCheck > checkSerialDelay) {
       recvWithStartEndMarkers();     
@@ -301,10 +313,12 @@ unsigned int readIntFromEEPROM(int address) {
 
 void recvWithStartEndMarkers() {
     static boolean recvInProgress = false;
+    static boolean jogData = false;
     static byte ndx = 0;
     char startMarker = '<';
     char endMarker = '>';
     char requestData = 'x';
+    char jogMarker = 'y';
     byte rc;
  
     while (Serial.available() > 0 && newData == false) {
@@ -344,6 +358,9 @@ void recvWithStartEndMarkers() {
           Serial.print(",");
           Serial.println();
           break;
+        } else if (rc == jogMarker) {
+          recvInProgress = true;
+          jogData = true;
         }
     }
 
@@ -351,62 +368,108 @@ void recvWithStartEndMarkers() {
 
     if (newData) {
 
-      unsigned int tempState = (message[0]<<8) + (message[1]);
-      unsigned int tempScanLength = (message[2]<<8) + (message[3]);
-      unsigned int tempTubeOffset = (message[4]<<8) + (message[5]);
-      unsigned int tempMotorOneSpeed = (message[6]<<8) + (message[7]);
-      unsigned int tempMotorTwoSpeed = (message[8]<<8) + (message[9]);
-      unsigned int tempMode = (message[10]<<8) + (message[11]);
-      unsigned int tempStepOver = (message[12]<<8) + (message[13]);
-      unsigned int tempStepDown = (message[14]<<8) + (message[15]);
-      unsigned int tempTubeDiameter = (message[16]<<8) + (message[17]);
+      if (jogData) {
+
+        Motor *ptrOne = &motorOne;
+        Motor *ptrTwo = &motorTwo;
+
+        unsigned int linearPos = (message[0]<<8) + (message[1]);
+        unsigned int angularPos = (message[2]<<8) + (message[3]);
+
+        // determine linear direction
+        if (motorOne.pos < linearPos) {
+          motorOne.dirState = LOW;
+          // move linear 
+          while (motorOne.pos <= linearPos) {
+            motorStep( ptrOne );
+          }
+        } else {
+          motorOne.dirState = HIGH;
+          // move linear 
+          while (motorOne.pos >= linearPos) {
+            motorStep( ptrOne );
+          }
+        }
+
+        if (motorTwo.pos <= angularPos) {
+          motorTwo.dirState = LOW;
+          // rotate
+          while (motorTwo.pos <= angularPos) {
+            motorStep( ptrTwo );
+          }
+        } else {
+          motorTwo.dirState = HIGH;
+          // rotate
+          while (motorTwo.pos >= angularPos) {
+            motorStep( ptrTwo );
+          }
+        }
+
+        // reset to low
+        motorTwo.dirState = LOW;
 
 
-      if (state != tempState) {
-         state = tempState;
-      }
-      if (scanLength != tempScanLength) {
-        scanLength = tempScanLength;
-        writeIntIntoEEPROM(scanLengthAddr, scanLength);
-      }
-      if (tubeOffset != tempTubeOffset) {
-        tubeOffset = tempTubeOffset;
-        writeIntIntoEEPROM(tubeOffsetAddr, tubeOffset);
-      }
-      if (mode != tempMode) {
-        mode = tempMode;
-        writeIntIntoEEPROM(modeAddr, mode);
-      }
-      if (motorOneSpeed != tempMotorOneSpeed) {
-        motorOneSpeed = tempMotorOneSpeed;
-        writeIntIntoEEPROM(motorOneSpeedAddr, motorOneSpeed);
-        motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
-      }
-      if (motorTwoSpeed != tempMotorTwoSpeed) {
-        motorTwoSpeed = tempMotorTwoSpeed;
-        writeIntIntoEEPROM(motorTwoSpeedAddr, motorTwoSpeed);
-        motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
-      }
-      if (stepOver != tempStepOver) {
-        stepOver = tempStepOver;
-        writeIntIntoEEPROM(stepOverAddr, stepOver);
-      }
-      if (stepDown != (float)(tempStepDown)*0.01) {
-        stepDown = (float)(tempStepDown)*0.01;
-        writeIntIntoEEPROM(stepDownAddr, tempStepDown);
-      }
-      if (tubeDiameter != tempTubeDiameter) {
-        tubeDiameter = tempTubeDiameter;
-        writeIntIntoEEPROM(tubeDiameterAddr, tempTubeDiameter);
-        float tubeCirc = tubeDiameter * PI;
-        float wheelCirc = wheelDiameter * PI;
-        float ratio = wheelCirc / tubeCirc;
-        degPerStep = (360.0 / stepsPerRev) * ratio; 
-        motorTwo.dPerStep = degPerStep;
-      }
-
-      newData = false;
-          
-    }
         
+
+        jogData = false;
+
+      } else {
+
+        unsigned int tempState = (message[0]<<8) + (message[1]);
+        unsigned int tempScanLength = (message[2]<<8) + (message[3]);
+        unsigned int tempTubeOffset = (message[4]<<8) + (message[5]);
+        unsigned int tempMotorOneSpeed = (message[6]<<8) + (message[7]);
+        unsigned int tempMotorTwoSpeed = (message[8]<<8) + (message[9]);
+        unsigned int tempMode = (message[10]<<8) + (message[11]);
+        unsigned int tempStepOver = (message[12]<<8) + (message[13]);
+        unsigned int tempStepDown = (message[14]<<8) + (message[15]);
+        unsigned int tempTubeDiameter = (message[16]<<8) + (message[17]);
+
+
+        if (state != tempState) {
+          state = tempState;
+        }
+        if (scanLength != tempScanLength) {
+          scanLength = tempScanLength;
+          writeIntIntoEEPROM(scanLengthAddr, scanLength);
+        }
+        if (tubeOffset != tempTubeOffset) {
+          tubeOffset = tempTubeOffset;
+          writeIntIntoEEPROM(tubeOffsetAddr, tubeOffset);
+        }
+        if (mode != tempMode) {
+          mode = tempMode;
+          writeIntIntoEEPROM(modeAddr, mode);
+        }
+        if (motorOneSpeed != tempMotorOneSpeed) {
+          motorOneSpeed = tempMotorOneSpeed;
+          writeIntIntoEEPROM(motorOneSpeedAddr, motorOneSpeed);
+          motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
+        }
+        if (motorTwoSpeed != tempMotorTwoSpeed) {
+          motorTwoSpeed = tempMotorTwoSpeed;
+          writeIntIntoEEPROM(motorTwoSpeedAddr, motorTwoSpeed);
+          motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
+        }
+        if (stepOver != tempStepOver) {
+          stepOver = tempStepOver;
+          writeIntIntoEEPROM(stepOverAddr, stepOver);
+        }
+        if (stepDown != (float)(tempStepDown)*0.01) {
+          stepDown = (float)(tempStepDown)*0.01;
+          writeIntIntoEEPROM(stepDownAddr, tempStepDown);
+        }
+        if (tubeDiameter != tempTubeDiameter) {
+          tubeDiameter = tempTubeDiameter;
+          writeIntIntoEEPROM(tubeDiameterAddr, tempTubeDiameter);
+          float tubeCirc = tubeDiameter * PI;
+          float wheelCirc = wheelDiameter * PI;
+          float ratio = wheelCirc / tubeCirc;
+          degPerStep = (360.0 / stepsPerRev) * ratio; 
+          motorTwo.dPerStep = degPerStep;
+        }
+            
+      }
+    
+    newData = false;        
 }
