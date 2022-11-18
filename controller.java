@@ -200,11 +200,11 @@ void setup() {
  
   k2 = cp5.addKnob("speed2")
    .setCaptionLabel("Angular Speed (deg/s)")
-   .setRange(90,540)
+   .setRange(15,150)
    .setValue(180)
    .setPosition(sectionThreeLeft,550)
    .setRadius(100)
-   .setNumberOfTickMarks(10)
+   .setNumberOfTickMarks(9)
    .setTickMarkLength(4)
    .snapToTickMarks(true)
    .setDragDirection(Knob.VERTICAL)
@@ -264,7 +264,7 @@ void setup() {
     .setNumberOfTickMarks(16)
     .setFont(font1);
     
-   cp5.addSlider("tubediameter")
+  cp5.addSlider("tubediameter")
     .setCaptionLabel("")
     .setPosition(sectionTwoLeft + 30, tubediameterTop)
     .setSize(sliderLength,25)
