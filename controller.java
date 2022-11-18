@@ -14,7 +14,7 @@ int H = 1120;
 PFont font1;
 
 ControlP5 cp5;
-Button b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, mode1, mode2;           
+Button b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, mode1, mode2;           
 Knob k1, k2;
 Slider scanlength, tubeoffset, stepover, stepdown, tubediameter, linearpos, angularpos;
 
@@ -162,6 +162,30 @@ void setup() {
     .setSize(25, 25)
     .setFont(font1);
     
+  b15 = cp5.addButton("plusLinearpos")
+    .setCaptionLabel("+")
+    .setPosition(sectionOneLeft+sliderLength+35, 700)
+    .setSize(25, 25)
+    .setFont(font1);
+  
+  b16 = cp5.addButton("minusLinearpos")
+    .setCaptionLabel("-")
+    .setPosition(sectionOneLeft, 700)
+    .setSize(25, 25)
+    .setFont(font1);  
+    
+  b17 = cp5.addButton("plusAngularpos")
+    .setCaptionLabel("+")
+    .setPosition(sectionOneLeft+sliderLength+35, 600)
+    .setSize(25, 25)
+    .setFont(font1);
+  
+  b18 = cp5.addButton("minusAngularpos")
+    .setCaptionLabel("-")
+    .setPosition(sectionOneLeft, 600)
+    .setSize(25, 25)
+    .setFont(font1);  
+    
   k1 = cp5.addKnob("speed1")
    .setCaptionLabel("Linear Speed (mm/s)")
    .setRange(20,300)
@@ -190,7 +214,7 @@ void setup() {
    .setCaptionLabel("")
    .setRange(0,scanLength+tubeOffset)
    .setValue(180)
-   .setPosition(sectionOneLeft,700)
+   .setPosition(sectionOneLeft+30,700)
    .setSize(sliderLength,25)
    .setNumberOfTickMarks(scanLength+tubeOffset+1)
    .setFont(font1);
@@ -199,7 +223,7 @@ void setup() {
    .setCaptionLabel("")
    .setRange(0,360)
    .setValue(0)
-   .setPosition(sectionOneLeft,600)
+   .setPosition(sectionOneLeft+30,600)
    .setSize(sliderLength,25)
    .setNumberOfTickMarks(361)
    .setFont(font1);
@@ -401,6 +425,30 @@ void minusTubediameter() {
   Controller td = cp5.getController("tubediameter");
   td.setValue(td.getValue() - 1.0);
   tubeDiameter = int(td.getValue());
+}
+
+void plusLinearpos() {
+  Controller lj = cp5.getController("linearpos");
+  lj.setValue(lj.getValue() + 1.0);
+  linearPos = int(lj.getValue());
+}
+
+void minusLinearpos() {
+  Controller lj = cp5.getController("linearpos");
+  lj.setValue(lj.getValue() - 1.0);
+  linearPos = int(lj.getValue());
+}
+
+void plusAngularpos() {
+  Controller aj = cp5.getController("angularpos");
+  aj.setValue(aj.getValue() + 1.0);
+  angularPos = int(aj.getValue());
+}
+
+void minusAngularpos() {
+  Controller aj = cp5.getController("angularpos");
+  aj.setValue(aj.getValue() - 1.0);
+  angularPos = int(aj.getValue());
 }
 
 
