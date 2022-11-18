@@ -380,27 +380,27 @@ void recvWithStartEndMarkers() {
         if (motorOne.pos < linearPos) {
           motorOne.dirState = LOW;
           // move linear 
-          while (motorOne.pos <= linearPos) {
+          while (motorOne.pos < linearPos) {
             motorStep( ptrOne );
           }
-        } else {
+        } else if (motorOne.pos > linearPos) {
           motorOne.dirState = HIGH;
           // move linear 
-          while (motorOne.pos >= linearPos) {
+          while (motorOne.pos > linearPos) {
             motorStep( ptrOne );
           }
         }
 
-        if (motorTwo.pos <= angularPos) {
+        if (motorTwo.pos < angularPos) {
           motorTwo.dirState = LOW;
           // rotate
-          while (motorTwo.pos <= angularPos) {
+          while (motorTwo.pos < angularPos) {
             motorStep( ptrTwo );
           }
-        } else {
+        } else if (motorTwo.pos > angularPos) {
           motorTwo.dirState = HIGH;
           // rotate
-          while (motorTwo.pos >= angularPos) {
+          while (motorTwo.pos > angularPos) {
             motorStep( ptrTwo );
           }
         }
