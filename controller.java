@@ -186,7 +186,7 @@ void setup() {
    .setDragDirection(Knob.VERTICAL)
    .setFont(font1);
    
-  linearpos = cp5.addSlider("linearpos")
+  cp5.addSlider("linearpos")
    .setCaptionLabel("")
    .setRange(0,scanLength+tubeOffset)
    .setValue(180)
@@ -195,7 +195,7 @@ void setup() {
    .setNumberOfTickMarks(scanLength+tubeOffset+1)
    .setFont(font1);
    
-  linearpos = cp5.addSlider("angularpos")
+  cp5.addSlider("angularpos")
    .setCaptionLabel("")
    .setRange(0,360)
    .setValue(0)
@@ -498,14 +498,14 @@ void sendCommand() {
     port.write(">");
   }
   
-  //println(state);
-  //println(scanLength);
-  //println(tubeOffset);
-  //println(motorOneSpeed);
-  //println(motorTwoSpeed);
-  //println(mode);
-  //println(stepOver);
-  //println(stepDown);
+  println(state);
+  println(scanLength);
+  println(tubeOffset);
+  println(motorOneSpeed);
+  println(motorTwoSpeed);
+  println(mode);
+  println(stepOver);
+  println(stepDown);
 
 }
 
@@ -523,4 +523,5 @@ void writeInt(int x) {
   port.write(x >> 8);
   port.write(x & 255);
 }
+  
   
