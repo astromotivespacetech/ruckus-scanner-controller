@@ -13,21 +13,6 @@ boolean newData = false;
 unsigned long checkSerialDelay = 100000;  // micros
 unsigned long prevCheck;
 
-
-struct Motor {
-  int dirPin;
-  int stepPin;
-  int dirState;
-  int stepState;
-  unsigned long prevStep;     // micros
-  unsigned int stepCounter;
-  unsigned long stepDelay;     // micros
-  float dPerStep;
-  float pos;                  // mm or angle (deg);
-  int type;
-};
-
-
 unsigned int scanLength;      // mm
 unsigned int tubeOffset;      // mm
 unsigned int motorOneSpeed;   // mm/s
@@ -36,7 +21,6 @@ unsigned int stepOver;        // mm
 float stepDown;               // deg
 unsigned int tubeDiameter;    // mm 
 
-
 const float mmPerRev = 10.0;      // mm
 const int fullStepsPerRev = 200;
 unsigned int microsteps = 4;
@@ -44,7 +28,6 @@ int stepsPerRev;
 float distPerStep;
 float degPerStep;
 const float wheelDiameter = 63.5; // mm
-
 
 unsigned int mode;
 int state = 0;
@@ -58,6 +41,19 @@ int motorTwoSpeedAddr = 8;
 int stepDownAddr = 10;
 int stepOverAddr = 12;
 int tubeDiameterAddr = 14;
+
+struct Motor {
+  int dirPin;
+  int stepPin;
+  int dirState;
+  int stepState;
+  unsigned long prevStep;     // micros
+  unsigned int stepCounter;
+  unsigned long stepDelay;     // micros
+  float dPerStep;
+  float pos;                  // mm or angle (deg);
+  int type;
+};
 
 Motor motorOne { DIRPIN1, STEPPIN1, LOW, LOW, 0, 0, 0, 0.0, 0.0, 0 };
 Motor motorTwo { DIRPIN2, STEPPIN2, LOW, LOW, 0, 0, 0, 0.0, 0.0, 1 };
@@ -471,5 +467,6 @@ void recvWithStartEndMarkers() {
             
       }
     
-    newData = false;        
+      newData = false; 
+    }       
 }
