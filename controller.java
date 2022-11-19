@@ -22,11 +22,11 @@ Slider scanlength, tubeoffset, stepover, stepdown, tubediameter, linearpos, angu
 int state = 0;
 int scanLength = 1000;
 int tubeOffset = 555;
-int motorOneSpeed = 50;
+int motorOneSpeed = 500;
 int motorTwoSpeed = 90;
 int mode = 1;
 int stepOver = 5;
-int stepDown = 100;
+int stepDown = 500;
 int tubeDiameter = 75;
 int linearPos = 0;
 int angularPos = 0;
@@ -46,9 +46,8 @@ int stepdownTop = scanLengthTop + margin*3;
 int tubediameterTop = scanLengthTop + margin*4;
 int sliderLength = 400;
 
-
-
-
+long runTime = (long)(scanLength/motorOneSpeed * (360.0/(stepDown*0.01)))*1000;
+long prevStart = 0;
 
 void setup() {
   size(1792, 1120);  
@@ -57,8 +56,7 @@ void setup() {
   
   // List all the available serial ports:
   printArray(ports);
-  
-  
+    
   try {
     // Open the port you are using at the rate you want:
     port = new Serial(this, ports[ports.length-1], 115200);
@@ -251,16 +249,18 @@ void setup() {
      .setPosition(sectionTwoLeft + 30, stepoverTop)
      .setSize(sliderLength,25)
      .setRange(1,10)
-     .setValue(stepOver)
+     .setValue(stepOver*0.01)
      .setNumberOfTickMarks(10)
      .setFont(font1);
      
+  float x = stepDown*0.01;
+  
   cp5.addSlider("stepdown")
     .setCaptionLabel("")
     .setPosition(sectionTwoLeft + 30, stepdownTop)
     .setSize(sliderLength,25)
     .setRange(0.5,8.0)
-    .setValue(stepDown*0.01)
+    .setValue(x)
     .setNumberOfTickMarks(16)
     .setFont(font1);
     
@@ -361,6 +361,13 @@ void draw() {
       }
     }
   }
+  
+  
+  if (millis() - prevStart > runTime) {
+    b2.setCaptionLabel("Start");
+    state = 0;
+    prevStart = millis();
+  }
 }
 
 
@@ -406,13 +413,15 @@ void minusStepover() {
 void plusStepdown() {
   Controller sd = cp5.getController("stepdown");
   sd.setValue(sd.getValue() + 0.5);
-  stepDown = int(sd.getValue());
+  stepDown = int(sd.getValue()*100);
+  println(stepDown);
 }
 
 void minusStepdown() {
   Controller sd = cp5.getController("stepdown");
   sd.setValue(sd.getValue() - 0.5);
-  stepDown = int(sd.getValue());
+  stepDown = int(sd.getValue()*100);
+  println(stepDown);
 }
 
 void plusTubediameter() {
@@ -464,6 +473,7 @@ void run() {
   b2.setCaptionLabel(x);
   state = s;
   sendCommand();
+  prevStart = millis();
 }
 
 void home() {
@@ -573,3 +583,6 @@ void writeInt(int x) {
 }
   
   
+void calcRunTime() {
+  runTime = (long)(scanLength/motorOneSpeed * (360.0/(stepDown*0.01)))*1000;
+}
