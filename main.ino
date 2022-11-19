@@ -243,6 +243,9 @@ void loop() {
 
 bool motorHoming(Motor *m) {
   bool homed = false;
+
+  # set linear speed to 50 mm/s 
+  m->stepDelay = (unsigned int)((1 / (50 / distPerStep) * 0.5) * 1e6);
   
   if (!digitalRead(PROXPIN1)) {
     proxDebounce += 1;
@@ -255,6 +258,9 @@ bool motorHoming(Motor *m) {
     motorStep( m );
     proxDebounce = 0;
   }
+
+  # reset linear speed 
+  m->stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
   return homed;
 }
 
@@ -308,165 +314,165 @@ unsigned int readIntFromEEPROM(int address) {
 
 
 void recvWithStartEndMarkers() {
-    static boolean recvInProgress = false;
-    static boolean jogData = false;
-    static byte ndx = 0;
-    char startMarker = '<';
-    char endMarker = '>';
-    char requestData = 'x';
-    char jogMarker = 'y';
-    byte rc;
- 
-    while (Serial.available() > 0 && newData == false) {
-        rc = Serial.read();
+  static boolean recvInProgress = false;
+  static boolean jogData = false;
+  static byte ndx = 0;
+  char startMarker = '<';
+  char endMarker = '>';
+  char requestData = 'x';
+  char jogMarker = 'y';
+  byte rc;
 
-        if (recvInProgress == true) {
-            if (rc != endMarker) {
-                message[ndx] = rc;
-                ndx++;
-                if (ndx >= numChars) {
-                    ndx = numChars - 1;
-                }
-            } else {
-                message[ndx] = '\0'; // terminate the string
-                recvInProgress = false;
-                ndx = 0;
-                newData = true;
-            }
-        } else if (rc == startMarker) {
-            recvInProgress = true;
-        } else if (rc == requestData) {
-          Serial.print(scanLength);
-          Serial.print(",");
-          Serial.print(tubeOffset);
-          Serial.print(",");
-          Serial.print(motorOneSpeed); 
-          Serial.print(",");
-          Serial.print(motorTwoSpeed); 
-          Serial.print(",");
-          Serial.print(mode); 
-          Serial.print(",");
-          Serial.print(stepOver);
-          Serial.print(",");
-          Serial.print(readIntFromEEPROM(stepDownAddr));
-          Serial.print(",");
-          Serial.print(tubeDiameter);
-          Serial.print(",");
-          Serial.println();
-          break;
-        } else if (rc == jogMarker) {
-          recvInProgress = true;
-          jogData = true;
+  while (Serial.available() > 0 && newData == false) {
+    rc = Serial.read();
+
+    if (recvInProgress == true) {
+      if (rc != endMarker) {
+        message[ndx] = rc;
+        ndx++;
+        if (ndx >= numChars) {
+          ndx = numChars - 1;
         }
-    }
-
-
-
-    if (newData) {
-
-      if (jogData) {
-
-        Motor *ptrOne = &motorOne;
-        Motor *ptrTwo = &motorTwo;
-
-        unsigned int linearPos = (message[0]<<8) + (message[1]);
-        unsigned int angularPos = (message[2]<<8) + (message[3]);
-
-        // determine linear direction
-        if (motorOne.pos < linearPos) {
-          motorOne.dirState = LOW;
-          // move linear 
-          while (motorOne.pos < linearPos) {
-            motorStep( ptrOne );
-          }
-        } else if (motorOne.pos > linearPos) {
-          motorOne.dirState = HIGH;
-          // move linear 
-          while (motorOne.pos > linearPos) {
-            motorStep( ptrOne );
-          }
-        }
-
-        if (motorTwo.pos < angularPos) {
-          motorTwo.dirState = LOW;
-          // rotate
-          while (motorTwo.pos < angularPos) {
-            motorStep( ptrTwo );
-          }
-        } else if (motorTwo.pos > angularPos) {
-          motorTwo.dirState = HIGH;
-          // rotate
-          while (motorTwo.pos > angularPos) {
-            motorStep( ptrTwo );
-          }
-        }
-
-        // reset to low
-        motorTwo.dirState = LOW;
-
-
-        
-
-        jogData = false;
-
       } else {
-
-        unsigned int tempState = (message[0]<<8) + (message[1]);
-        unsigned int tempScanLength = (message[2]<<8) + (message[3]);
-        unsigned int tempTubeOffset = (message[4]<<8) + (message[5]);
-        unsigned int tempMotorOneSpeed = (message[6]<<8) + (message[7]);
-        unsigned int tempMotorTwoSpeed = (message[8]<<8) + (message[9]);
-        unsigned int tempMode = (message[10]<<8) + (message[11]);
-        unsigned int tempStepOver = (message[12]<<8) + (message[13]);
-        unsigned int tempStepDown = (message[14]<<8) + (message[15]);
-        unsigned int tempTubeDiameter = (message[16]<<8) + (message[17]);
-
-
-        if (state != tempState) {
-          state = tempState;
-        }
-        if (scanLength != tempScanLength) {
-          scanLength = tempScanLength;
-          writeIntIntoEEPROM(scanLengthAddr, scanLength);
-        }
-        if (tubeOffset != tempTubeOffset) {
-          tubeOffset = tempTubeOffset;
-          writeIntIntoEEPROM(tubeOffsetAddr, tubeOffset);
-        }
-        if (mode != tempMode) {
-          mode = tempMode;
-          writeIntIntoEEPROM(modeAddr, mode);
-        }
-        if (motorOneSpeed != tempMotorOneSpeed) {
-          motorOneSpeed = tempMotorOneSpeed;
-          writeIntIntoEEPROM(motorOneSpeedAddr, motorOneSpeed);
-          motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
-        }
-        if (motorTwoSpeed != tempMotorTwoSpeed) {
-          motorTwoSpeed = tempMotorTwoSpeed;
-          writeIntIntoEEPROM(motorTwoSpeedAddr, motorTwoSpeed);
-          motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
-        }
-        if (stepOver != tempStepOver) {
-          stepOver = tempStepOver;
-          writeIntIntoEEPROM(stepOverAddr, stepOver);
-        }
-        if (stepDown != (float)(tempStepDown)*0.01) {
-          stepDown = (float)(tempStepDown)*0.01;
-          writeIntIntoEEPROM(stepDownAddr, tempStepDown);
-        }
-        if (tubeDiameter != tempTubeDiameter) {
-          tubeDiameter = tempTubeDiameter;
-          writeIntIntoEEPROM(tubeDiameterAddr, tempTubeDiameter);
-          float tubeCirc = tubeDiameter * PI;
-          float wheelCirc = wheelDiameter * PI;
-          float ratio = wheelCirc / tubeCirc;
-          degPerStep = (360.0 / stepsPerRev) * ratio; 
-          motorTwo.dPerStep = degPerStep;
-        }
-            
+        message[ndx] = '\0'; // terminate the string
+        recvInProgress = false;
+        ndx = 0;
+        newData = true;
       }
-    
-      newData = false; 
-    }       
+    } else if (rc == startMarker) {
+      recvInProgress = true;
+    } else if (rc == requestData) {
+      Serial.print(scanLength);
+      Serial.print(",");
+      Serial.print(tubeOffset);
+      Serial.print(",");
+      Serial.print(motorOneSpeed); 
+      Serial.print(",");
+      Serial.print(motorTwoSpeed); 
+      Serial.print(",");
+      Serial.print(mode); 
+      Serial.print(",");
+      Serial.print(stepOver);
+      Serial.print(",");
+      Serial.print(readIntFromEEPROM(stepDownAddr));
+      Serial.print(",");
+      Serial.print(tubeDiameter);
+      Serial.print(",");
+      Serial.println();
+      break;
+    } else if (rc == jogMarker) {
+      recvInProgress = true;
+      jogData = true;
+    }
+  }
+
+
+
+  if (newData) {
+
+    if (jogData) {
+
+      Motor *ptrOne = &motorOne;
+      Motor *ptrTwo = &motorTwo;
+
+      unsigned int linearPos = (message[0]<<8) + (message[1]);
+      unsigned int angularPos = (message[2]<<8) + (message[3]);
+
+      // determine linear direction
+      if (motorOne.pos < linearPos) {
+        motorOne.dirState = LOW;
+        // move linear 
+        while (motorOne.pos < linearPos) {
+          motorStep( ptrOne );
+        }
+      } else if (motorOne.pos > linearPos) {
+        motorOne.dirState = HIGH;
+        // move linear 
+        while (motorOne.pos > linearPos) {
+          motorStep( ptrOne );
+        }
+      }
+
+      if (motorTwo.pos < angularPos) {
+        motorTwo.dirState = LOW;
+        // rotate
+        while (motorTwo.pos < angularPos) {
+          motorStep( ptrTwo );
+        }
+      } else if (motorTwo.pos > angularPos) {
+        motorTwo.dirState = HIGH;
+        // rotate
+        while (motorTwo.pos > angularPos) {
+          motorStep( ptrTwo );
+        }
+      }
+
+      // reset to low
+      motorTwo.dirState = LOW;
+
+
+      
+
+      jogData = false;
+
+    } else {
+
+      unsigned int tempState = (message[0]<<8) + (message[1]);
+      unsigned int tempScanLength = (message[2]<<8) + (message[3]);
+      unsigned int tempTubeOffset = (message[4]<<8) + (message[5]);
+      unsigned int tempMotorOneSpeed = (message[6]<<8) + (message[7]);
+      unsigned int tempMotorTwoSpeed = (message[8]<<8) + (message[9]);
+      unsigned int tempMode = (message[10]<<8) + (message[11]);
+      unsigned int tempStepOver = (message[12]<<8) + (message[13]);
+      unsigned int tempStepDown = (message[14]<<8) + (message[15]);
+      unsigned int tempTubeDiameter = (message[16]<<8) + (message[17]);
+
+
+      if (state != tempState) {
+        state = tempState;
+      }
+      if (scanLength != tempScanLength) {
+        scanLength = tempScanLength;
+        writeIntIntoEEPROM(scanLengthAddr, scanLength);
+      }
+      if (tubeOffset != tempTubeOffset) {
+        tubeOffset = tempTubeOffset;
+        writeIntIntoEEPROM(tubeOffsetAddr, tubeOffset);
+      }
+      if (mode != tempMode) {
+        mode = tempMode;
+        writeIntIntoEEPROM(modeAddr, mode);
+      }
+      if (motorOneSpeed != tempMotorOneSpeed) {
+        motorOneSpeed = tempMotorOneSpeed;
+        writeIntIntoEEPROM(motorOneSpeedAddr, motorOneSpeed);
+        motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
+      }
+      if (motorTwoSpeed != tempMotorTwoSpeed) {
+        motorTwoSpeed = tempMotorTwoSpeed;
+        writeIntIntoEEPROM(motorTwoSpeedAddr, motorTwoSpeed);
+        motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
+      }
+      if (stepOver != tempStepOver) {
+        stepOver = tempStepOver;
+        writeIntIntoEEPROM(stepOverAddr, stepOver);
+      }
+      if (stepDown != (float)(tempStepDown)*0.01) {
+        stepDown = (float)(tempStepDown)*0.01;
+        writeIntIntoEEPROM(stepDownAddr, tempStepDown);
+      }
+      if (tubeDiameter != tempTubeDiameter) {
+        tubeDiameter = tempTubeDiameter;
+        writeIntIntoEEPROM(tubeDiameterAddr, tempTubeDiameter);
+        float tubeCirc = tubeDiameter * PI;
+        float wheelCirc = wheelDiameter * PI;
+        float ratio = wheelCirc / tubeCirc;
+        degPerStep = (360.0 / stepsPerRev) * ratio; 
+        motorTwo.dPerStep = degPerStep;
+      }
+          
+    }
+  
+    newData = false; 
+  }       
 }
