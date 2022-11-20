@@ -101,16 +101,16 @@ void setup() {
   float ratio = wheelCirc / tubeCirc;
 
   // calc distance/degrees per step
-  distPerStep = mmPerRev / stepsPerRev;
+  distPerStep = mmPerRev / stepsPerRev; // 0.0125 mm
   degPerStep = (360.0 / stepsPerRev) * ratio; 
 
   motorOne.dPerStep = distPerStep;
   motorTwo.dPerStep = degPerStep;
 
   // set step delays
-  motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
-  motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 0.5) * 1e6);
-  
+  motorOne.stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 2) * 1e6);
+  motorTwo.stepDelay = (unsigned int)((1 / (motorTwoSpeed / degPerStep) * 2) * 1e6);
+
 }
 
 void loop() {
@@ -245,7 +245,7 @@ bool motorHoming(Motor *m) {
   bool homed = false;
 
   // set linear speed to 50 mm/s 
-  m->stepDelay = (unsigned int)((1 / (50 / distPerStep) * 0.5) * 1e6);
+  m->stepDelay = (unsigned int)((1 / (50 / distPerStep) * 2) * 1e6);
   
   if (!digitalRead(PROXPIN1)) {
     proxDebounce += 1;
@@ -260,7 +260,7 @@ bool motorHoming(Motor *m) {
   }
 
   // reset linear speed 
-  m->stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 0.5) * 1e6);
+  m->stepDelay = (unsigned int)((1 / (motorOneSpeed / distPerStep) * 2) * 1e6);
   return homed;
 }
 
