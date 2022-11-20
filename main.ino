@@ -23,7 +23,8 @@ unsigned int tubeDiameter;    // mm
 
 const float mmPerRev = 10.0;      // mm
 const int fullStepsPerRev = 200;
-unsigned int microsteps = 4;
+unsigned int linearMicrosteps = 2;
+unsigned int angularMicrosteps = 4;
 int stepsPerRev;
 float distPerStep;
 float degPerStep;
@@ -93,7 +94,8 @@ void setup() {
   tubeDiameter = readIntFromEEPROM(tubeDiameterAddr);
 
   // calc steps per revolution
-  stepsPerRev = fullStepsPerRev * microsteps;  
+  linearStepsPerRev = fullStepsPerRev * linearMicrosteps;  
+  angularStepsPerRev = fullStepsPerRev * angularMicrosteps;  
 
   // calc circumference ratio
   float tubeCirc = tubeDiameter * PI;
@@ -101,8 +103,8 @@ void setup() {
   float ratio = wheelCirc / tubeCirc;
 
   // calc distance/degrees per step
-  distPerStep = mmPerRev / stepsPerRev; // 0.0125 mm
-  degPerStep = (360.0 / stepsPerRev) * ratio; 
+  distPerStep = mmPerRev / linearStepsPerRev; // 0.0125 mm
+  degPerStep = (360.0 / angularStepsPerRev) * ratio; 
 
   motorOne.dPerStep = distPerStep;
   motorTwo.dPerStep = degPerStep;
