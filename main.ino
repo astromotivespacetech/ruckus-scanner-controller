@@ -372,12 +372,14 @@ void recvWithStartEndMarkers() {
 
     if (jogData) {
 
+      jogData = false;
+
       Motor *ptrOne = &motorOne;
       Motor *ptrTwo = &motorTwo;
 
       unsigned int linearPos = (message[0]<<8) + (message[1]);
       unsigned int angularPos = (message[2]<<8) + (message[3]);
-
+      
       // determine linear direction
       if (motorOne.pos < linearPos) {
         motorOne.dirState = LOW;
@@ -409,11 +411,6 @@ void recvWithStartEndMarkers() {
 
       // reset to low
       motorTwo.dirState = LOW;
-
-
-      
-
-      jogData = false;
 
     } else {
 
