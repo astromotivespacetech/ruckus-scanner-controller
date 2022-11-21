@@ -467,7 +467,7 @@ void recvWithStartEndMarkers() {
         float tubeCirc = tubeDiameter * PI;
         float wheelCirc = wheelDiameter * PI;
         float ratio = wheelCirc / tubeCirc;
-        degPerStep = (360.0 / stepsPerRev) * ratio; 
+        degPerStep = (360.0 / angularStepsPerRev) * ratio; 
         motorTwo.dPerStep = degPerStep;
       }
           
