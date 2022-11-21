@@ -25,7 +25,8 @@ const float mmPerRev = 10.0;      // mm
 const int fullStepsPerRev = 200;
 unsigned int linearMicrosteps = 2;
 unsigned int angularMicrosteps = 4;
-int stepsPerRev;
+int linearStepsPerRev;
+int angularStepsPerRev;
 float distPerStep;
 float degPerStep;
 const float wheelDiameter = 63.5; // mm
